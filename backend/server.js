@@ -2,7 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
+var jwt = require('jsonwebtoken');
 const cors = require('cors');
+const { response } = require('express');
 const app = express();
 
 // APP Stuff
@@ -56,6 +58,33 @@ app.post('/api/signup', async(req, res) => {
     const user = new User(data);
     user.save()
     res.json({message:"hi baby"});
+});
+
+app.get('/api/login', (req, res) => {
+    res.json({message:'Welcome to Login Backend Api'});
+});
+ 
+app.post('/api/login', async(req, res) => {
+    console.log(req.body)
+    var password = req.body.password;
+    var username = req.body.username
+
+    const tempuser  = await User.find({username:username})
+    if(!tempuser.length) // user not found
+        res.status(400).json({success:false,error:"User Not Found"})
+    else
+    {
+        // console.log(tempuser[0])
+        var truth = await bcrypt.compareSync(password, tempuser[0].Password); // To Check Password
+        console.log(tempuser[0])
+        if(!truth)
+            res.status(400).json({success:false,error:"Incorrect Password"})
+        else
+        {
+            let token = jwt.sign({firstname:tempuser[0].firstname , lastname:tempuser[0].lastnme , username:tempuser[0].username , email:tempuser[0].Email , contactno:tempuser[0].Contactno , age : tempuser[0].Age},'jwtsecret');
+            res.status(200).json({ success: true, token:token});
+        }
+    }
 });
 
 app.listen(3001, () => {

@@ -30,24 +30,34 @@ const Signup = () => {
       setconfirmpassword(e.target.value);
   }
 
+  const reset =()=>{
+    setfirstname("")
+    setlastname("")
+    setusername("")
+    setemail("")
+    setpassword("")
+    setage()
+    setcontactno("")
+  }
+
   const submit = async () => {
-    console.log(password, confirmpassword)
+    
 
     if (password === confirmpassword) {
 
 
       const datatosend = {firstname ,lastname,username, age,contactno,email, password };
-      console.log(JSON.stringify(datatosend))
+      
       fetch('http://localhost:3001/api/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': 'https://localhost:3001'
         },
         body:
           JSON.stringify(datatosend)// body data type must match "Content-Type" header
       }).then((response) => {
         console.log(response)
+        reset()
       })
     }
   }
