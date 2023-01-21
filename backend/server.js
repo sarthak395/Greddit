@@ -19,7 +19,7 @@ mongoose.connect('mongodb+srv://Dass_Data:1234@cluster0.weu4u3b.mongodb.net/?ret
 // DEFINING SCHEMA
 const userschema = new mongoose.Schema({
     firstname: String,
-    lastnme:String,
+    lastname:String,
     username:{type:String,unique:true},
     Email: {type:String,unique:true},
     Contactno:{type:String,unique:true},
@@ -81,7 +81,7 @@ app.post('/api/login', async(req, res) => {
             res.status(400).json({success:false,error:"Incorrect Password"})
         else
         {
-            let token = jwt.sign({firstname:tempuser[0].firstname , lastname:tempuser[0].lastnme , username:tempuser[0].username , email:tempuser[0].Email , contactno:tempuser[0].Contactno , age : tempuser[0].Age},'jwtsecret');
+            let token = jwt.sign({firstname:tempuser[0].firstname , lastname:tempuser[0].lastname , username:tempuser[0].username , email:tempuser[0].Email , contactno:tempuser[0].Contactno , age : tempuser[0].Age},'jwtsecret');
             res.status(200).json({ success: true, token:token});
         }
     }

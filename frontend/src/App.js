@@ -17,7 +17,7 @@ function App() {
       <div className='App flex flex-col min-h-screen'>
         <Navbar user={user} setuser={setuser}/>
         <Routes>
-          <Route exact path="/" element={<Profile></Profile>} ></Route>
+          <Route exact path="/" element={<Profile user={user}></Profile>} ></Route>
           <Route exact path='/login' element={<Login></Login>}></Route>
           <Route exact path='/signup' element={<Signup></Signup>} ></Route>
         </Routes>
