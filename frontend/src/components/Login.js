@@ -1,6 +1,8 @@
 import React from 'react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -30,19 +32,32 @@ const Login = () => {
         })
         let response = await res.json()
         if (response.error)
-            console.log(response.error)
+            toast.error(response.error)
         else {
             console.log(response.token)
             localStorage.setItem('token', response.token);
             setusername("")
             setpassword("")
-            console.log("You are Successfully logged in")
-            navigate("/")
+            toast.success("You are Successfully logged in")
+            setTimeout(() => {
+                navigate("/");
+            }, 2000);           
         }
     }
 
     return (
         <div className="bg-grey-lighter min-h-screen flex flex-col">
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={true}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
             <div className="container max-w-sm mx-auto flex-1 flex flex-col items-center justify-center px-2">
                 <div className="bg-white px-6 py-8 rounded shadow-md text-black w-full">
                     <h1 className="mb-8 text-3xl text-center">Log In</h1>
@@ -76,7 +91,7 @@ const Login = () => {
                     </div>
                 </div>
 
-                
+
             </div>
         </div>
     )

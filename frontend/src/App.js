@@ -7,6 +7,7 @@ import Profile from './components/Profile';
 import Signup from './components/Signup';
 import Login from './components/Login';
 import { useState, useEffect } from 'react';
+import Auth from './components/Auth';
 
 function App() {
  
@@ -18,8 +19,7 @@ function App() {
         <Navbar user={user} setuser={setuser}/>
         <Routes>
           <Route exact path="/" element={<Profile user={user}></Profile>} ></Route>
-          <Route exact path='/login' element={<Login></Login>}></Route>
-          <Route exact path='/signup' element={<Signup></Signup>} ></Route>
+          <Route path='/auth' element={<Auth ></Auth>} ></Route>
         </Routes>
         <Footer />
       </div>

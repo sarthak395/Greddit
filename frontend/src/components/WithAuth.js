@@ -7,7 +7,7 @@ const WithAuth = (Component) => {
         if (isAuth) {
             return <Component />;
         } else {
-            return <Navigate to="/signup" />;
+            return <Navigate to="/auth?mode=signup" />;
         }
     };
 
