@@ -1,10 +1,8 @@
 import React from 'react'
 import { useState } from 'react';
-import { Location, useLocation } from 'react-router-dom';
 
 const Signup = () => {
-  let location = useLocation();
-  console.log(location.search)
+  
 
   const [firstname, setfirstname] = useState("");
   const [lastname, setlastname] = useState("");
