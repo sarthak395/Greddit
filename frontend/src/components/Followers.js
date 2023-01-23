@@ -1,8 +1,10 @@
 import React from 'react'
 import { useEffect, useState } from 'react'
+import {Link, Navigate} from 'react-router-dom'
 import jwt from 'jwt-decode' // import dependency
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Button } from '@material-ui/core';
 
 const Followers = () => {
 
@@ -74,14 +76,14 @@ const Followers = () => {
                 <div className="flex flex-wrap -m-2">
                     {followers.map((follower) => {
                         return (
-                            <div key={follower.username} className="p-2 lg:w-1/3 md:w-1/2 w-full">
+                            <div key={follower.fusername} className="p-2 lg:w-1/3 md:w-1/2 w-full">
                                 <div className="h-full flex items-center border-gray-200 border p-4 rounded-lg">
                                     <img alt="team" className="w-16 h-16 bg-gray-100 object-cover object-center flex-shrink-0 rounded-full mr-4" src="https://dummyimage.com/80x80" />
                                     
-                                    <div className="flex-grow">
+                                    <Link to={`/otherprofile?username=${follower.fusername}`} className="flex-grow">
                                         <h2 className="text-gray-900 title-font font-medium">{follower.firstname} {follower.lastname}</h2>
                                         <p className="text-gray-500">{follower.fusername}</p>
-                                    </div>
+                                    </Link>
                                     <button onClick={()=>{removefollower(follower.fusername)}} className="text-red-500 hover:bg-gray-200  font-bold py-2 px-4 border border-b-slate-200 rounded-full">
                                         Remove
                                     </button>

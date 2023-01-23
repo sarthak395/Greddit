@@ -78,7 +78,7 @@ const Profile = (user) => {
       />
       <div class="container px-5 py-24 mx-auto">
         <div class="flex flex-col text-center w-full mb-20">
-          <h1 class="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">Welcome sexy {userdata.firstname} !! </h1>
+          <h1 class="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">{userdata.firstname} {userdata.lastname}!! </h1>
           <p class="lg:w-2/3 mx-auto leading-relaxed text-base">Yes , we have your data , hope its not too important . Welcome to Greddit , a reddit clone for all your dank memes and software updates . Any malicious content will be reported and you will be banished from reddit</p>
         </div>
         <div class="flex flex-col text-center w-full mb-20 ">

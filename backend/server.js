@@ -223,6 +223,46 @@ app.post("/api/removefollowing", async (req, res) => {
 
 })
 
+app.post('/api/fetchprofile',async(req,res)=>{
+    let username = req.body.username;
+    let tempuser = await User.find({ username: username })
+
+    let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
+
+    res.status(200).json({token:token});
+})
+
+app.post('/api/follow' , async(req,res)=>{
+    let user = req.body.user;
+    let whotofollow = req.body.whotofollow;
+
+    let tempuser = await User.find({username:user});
+    let tempuser1 = await User.find({username:whotofollow});
+
+    tempuser[0].Following.push({
+        firstname:tempuser1[0].firstname,
+        lastname:tempuser1[0].lastname,
+        fusername:tempuser1[0].username
+    })
+    tempuser[0].numfollowing = tempuser[0].numfollowing + 1;
+
+    tempuser1[0].Followers.push({
+        firstname:tempuser[0].firstname,
+        lastname:tempuser[0].lastname,
+        fusername:tempuser[0].username
+    })
+    tempuser1[0].numfollowers = tempuser1[0].numfollowers+1;
+
+    console.log(tempuser[0]);
+
+    await tempuser[0].save();
+    await tempuser1[0].save();
+
+    let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
+
+    res.status(200).json({token:token});
+})
+
 app.listen(3001, () => {
     console.log('Server started on port 3001');
 });

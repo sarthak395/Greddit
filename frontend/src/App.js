@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import Auth from './components/Auth';
 import Followers from './components/Followers';
 import Following from './components/Following';
+import Otherprofile from './components/Otherprofile';
 
 function App() {
  
@@ -22,6 +23,7 @@ function App() {
         <Routes>
           <Route exact path="/" element={<Profile user={user}></Profile>} ></Route>
           <Route path='/auth' element={<Auth ></Auth>} ></Route>
+          <Route path='/otherprofile' element={<Otherprofile ></Otherprofile>} ></Route>
           <Route exact path='/followers' element={<Followers ></Followers>} ></Route>
           <Route exact path='/following' element={<Following ></Following>} ></Route>
         </Routes>
