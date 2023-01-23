@@ -5,6 +5,7 @@ import jwt from 'jwt-decode' // import dependency
 import { Navigate, useLocation } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom'
 
 const Profile = (user) => {
 
@@ -20,6 +21,7 @@ const Profile = (user) => {
     setnewdata(jwt(token))
   }, [])
 
+  let navigate = useNavigate()
   const updateData = e => {
     setnewdata({
       ...newdata,
@@ -127,13 +129,39 @@ const Profile = (user) => {
                 </div>
                 {editable && <div class="grid grid-cols-2">
                   <div class="px-4 py-2 font-semibold">Password </div>
-                  <input onChange={updatepassword} type='text' name='password' class="px-4 py-2" placeholder="Enter Password" required />
+                  <input onChange={updatepassword} type='password' name='password' class="px-4 py-2" placeholder="Enter Password" required />
                 </div>}
               </div>
             </div>
           </div>
           {!editable && <button onClick={editdetails} class="flex text-white bg-indigo-500 text-center border-0 py-2 px-6 w-[8%]  focus:outline-none hover:bg-indigo-600 rounded">Edit</button>}
           {editable && <button onClick={editdetails} class="flex text-white bg-indigo-500 text-center border-0 py-2 px-6 w-[15%]  focus:outline-none hover:bg-indigo-600 rounded">Confirm Changes</button>}
+        </div>
+
+        <div class="flex flex-wrap -m-4 text-center">
+
+          <button onClick={()=>{navigate('/followers')}}  class="p-4 md:w-1/4 sm:w-1/2 m-auto w-full ">
+            <div class="border-2 border-gray-200 px-4 py-6 rounded-lg hover:bg-gray-300">
+              <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="text-indigo-500 w-12 h-12 mb-3 inline-block" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"></path>
+              </svg>
+              <h2 class="title-font font-medium text-3xl text-gray-900">{userdata.numfollowers}</h2>
+              <p class="leading-relaxed">Followers</p>
+            </div>
+          </button>
+          <button onClick={()=>{navigate('/following')}} class="p-4 md:w-1/4 sm:w-1/2 w-full m-auto">
+            <div class="border-2 border-gray-200 px-4 py-6 rounded-lg hover:bg-gray-300">
+              <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="text-indigo-500 w-12 h-12 mb-3 inline-block" viewBox="0 0 24 24">
+                <path d="M3 18v-6a9 9 0 0118 0v6"></path>
+                <path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z"></path>
+              </svg>
+              <h2 class="title-font font-medium text-3xl text-gray-900">{userdata.numfollowing}</h2>
+              <p class="leading-relaxed">Following</p>
+            </div>
+          </button>
+
         </div>
       </div>
     </section>

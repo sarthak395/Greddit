@@ -53,10 +53,10 @@ const Navbar = ({ user, setuser }) => {
           </a>
         </Link>
         <nav className="md:ml-auto md:mr-auto flex flex-wrap items-center text-base justify-center">
-          <a className="mr-5 hover:text-gray-900">First Link</a>
-          <a className="mr-5 hover:text-gray-900">Second Link</a>
-          <a className="mr-5 hover:text-gray-900">Third Link</a>
-          <a className="mr-5 hover:text-gray-900">Fourth Link</a>
+          <a className="mr-5 hover:text-blue-600">First Link</a>
+          <a className="mr-5 hover:text-blue-600">Second Link</a>
+          <a className="mr-5 hover:text-blue-600">Third Link</a>
+          <a className="mr-5 hover:text-blue-600">Fourth Link</a>
         </nav>
         {/* <Link to={'/signup'}> */}
         {!user.value && <Link to="/auth?mode=signup"> <button className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4 md:mt-0">Sign Up

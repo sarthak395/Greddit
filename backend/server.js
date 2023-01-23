@@ -24,8 +24,22 @@ const userschema = new mongoose.Schema({
     Email: { type: String, unique: true },
     Contactno: { type: String, unique: true },
     Age: Number,
-    Password: String
+    Password: String,
+    numfollowing: {type:Number, default:0  },
+    numfollowers: {type:Number , default:0},
+    Followers:{type: [{
+        firstname: String,
+        lastname: String,
+        fusername: {type:String},
+    }] , sparse:true},
+    Following: {type: [{
+        firstname: String,
+        lastname: String,
+        fusername: {type:String},
+    }] , sparse:true}
 });
+
+
 
 const User = mongoose.model('User', userschema)
 
@@ -53,10 +67,12 @@ app.post('/api/signup', async (req, res) => {
         "Email": req.body.email,
         "Contactno": req.body.contactno,
         "Age": req.body.age,
-        "Password": encryptedpassword
+        "Password": encryptedpassword,
+        "numfollowers":0,
+        "numfollowing":0,
     }
     const user = new User(data);
-    user.save()
+    await user.save()
     res.json({ message: "hi baby" });
 });
 
@@ -79,7 +95,7 @@ app.post('/api/login', async (req, res) => {
         if (!truth)
             res.status(400).json({ success: false, error: "Incorrect Password" })
         else {
-            let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age }, 'jwtsecret');
+            let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
             res.status(200).json({ success: true, token: token });
         }
     }
@@ -96,8 +112,8 @@ app.post('/api/updatedetails', async (req, res) => {
         res.status(400).json({ success: false, error: "Incorrect Password" })
     }
     else {
-        
-        
+
+
         tempuser[0].firstname = req.body.newdata.firstname;
         tempuser[0].lastname = req.body.newdata.lastname;
         tempuser[0].username = req.body.newdata.username;
@@ -110,12 +126,101 @@ app.post('/api/updatedetails', async (req, res) => {
         await tempuser[0].save();
 
 
-        let token = jwt.sign({ id: req.body.newdata.id, firstname: req.body.newdata.firstname, lastname: req.body.newdata.lastname, username: req.body.newdata.username, email: req.body.newdata.email, contactno: req.body.newdata.contactno, age: req.body.newdata.age }, 'jwtsecret');
+        let token = jwt.sign({ id: req.body.newdata.id, firstname: req.body.newdata.firstname, lastname: req.body.newdata.lastname, username: req.body.newdata.username, email: req.body.newdata.email, contactno: req.body.newdata.contactno, age: req.body.newdata.age , numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
 
         // console.log(resp)
 
         res.status(200).json({ success: true, token: token });
     }
+})
+
+app.post("/api/getfollowers", async (req, res) => {
+    let username = req.body.username;
+    const tempuser = await User.find({ username: username })
+
+    if (!tempuser.length) // user not found
+        res.status(400).json({ success: false, error: "User Not Found" })
+    else {
+        res.status(200).json(tempuser[0].Followers);
+    }
+})
+app.post("/api/getfollowing", async (req, res) => {
+    let username = req.body.username;
+    const tempuser = await User.find({ username: username })
+
+    if (!tempuser.length) // user not found
+        res.status(400).json({ success: false, error: "User Not Found" })
+    else {
+        res.status(200).json(tempuser[0].Following);
+    }
+})
+
+app.post("/api/removefollower", async (req, res) => {
+    let followee = req.body.followee;
+    let follower = req.body.follower;
+
+    console.log(followee  , follower)
+
+    let tempuser = await User.find({ username: followee })
+    
+    for (var i = 0; i < tempuser[0].Followers.length; i++) {
+        if (tempuser[0].Followers[i].fusername === follower) {
+            var spliced = tempuser[0].Followers.splice(i, 1);
+            break;
+        }
+    }
+    tempuser[0].numfollowers = tempuser[0].numfollowers-1;
+    await tempuser[0].save()
+
+    let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
+
+    // Logic for removal from follower's following list 
+
+    let tempuser1 = await User.find({username:follower});
+    for (var i = 0; i < tempuser1[0].Following.length; i++) {
+        if (tempuser1[0].Following[i].fusername === followee) {
+            var spliced = tempuser1[0].Following.splice(i, 1);
+            break;
+        }
+    }
+    tempuser1[0].numfollowing = tempuser1[0].numfollowing-1;
+    await tempuser1[0].save()
+
+    res.status(200).json({Usertoken:token , Follower:tempuser1[0].Following})
+
+})
+
+app.post("/api/removefollowing", async (req, res) => {
+    let followee = req.body.followee;
+    let following = req.body.following;
+
+
+    let tempuser = await User.find({ username: followee })
+    
+    for (var i = 0; i < tempuser[0].Following.length; i++) {
+        if (tempuser[0].Following[i].fusername === following) {
+            var spliced = tempuser[0].Following.splice(i, 1);
+            break;
+        }
+    }
+    tempuser[0].numfollowing = tempuser[0].numfollowing-1;
+    await tempuser[0].save()
+
+    let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
+
+    // Logic for removal from following's follower list pending !!
+    let tempuser1 = await User.find({username:following});
+    for (var i = 0; i < tempuser1[0].Followers.length; i++) {
+        if (tempuser1[0].Followers[i].fusername === followee) {
+            var spliced = tempuser1[0].Followers.splice(i, 1);
+            break;
+        }
+    }
+    tempuser1[0].numfollowers = tempuser1[0].numfollowers-1;
+    await tempuser1[0].save()
+
+    res.status(200).json({Usertoken:token , Following:tempuser1[0].Followers})
+
 })
 
 app.listen(3001, () => {

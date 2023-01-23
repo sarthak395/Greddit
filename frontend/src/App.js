@@ -8,6 +8,8 @@ import Signup from './components/Signup';
 import Login from './components/Login';
 import { useState, useEffect } from 'react';
 import Auth from './components/Auth';
+import Followers from './components/Followers';
+import Following from './components/Following';
 
 function App() {
  
@@ -20,6 +22,8 @@ function App() {
         <Routes>
           <Route exact path="/" element={<Profile user={user}></Profile>} ></Route>
           <Route path='/auth' element={<Auth ></Auth>} ></Route>
+          <Route exact path='/followers' element={<Followers ></Followers>} ></Route>
+          <Route exact path='/following' element={<Following ></Following>} ></Route>
         </Routes>
         <Footer />
       </div>
