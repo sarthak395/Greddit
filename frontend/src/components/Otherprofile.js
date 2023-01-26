@@ -38,7 +38,10 @@ const Otherprofile = () => {
                 JSON.stringify({ user: userdata.username, whotofollow: whotofollow })// body data type must match "Content-Type" header
         })
         let resp = await res.json();
-        localStorage.setItem("token",resp.token)
+        localStorage.setItem("token", resp.token)
+        setTimeout(() => {
+            window.location.reload()
+        }, 1000)
     }
 
     return (

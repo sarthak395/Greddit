@@ -3,9 +3,12 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
+const {v4 : uuidv4} = require("uuid")
 const cors = require('cors');
 const { response } = require('express');
+const { MoneyOff } = require('@material-ui/icons');
 const app = express();
+
 
 // APP Stuff
 app.use(cors())
@@ -14,7 +17,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 // MONGOOSE STUFF
+const con = mongoose.connection
 mongoose.connect('mongodb+srv://Dass_Data:1234@cluster0.weu4u3b.mongodb.net/?retryWrites=true&w=majority')
+con.on('open', function () {
+    console.log("Connnected ..")
+})
 
 // DEFINING SCHEMA
 const userschema = new mongoose.Schema({
@@ -25,23 +32,73 @@ const userschema = new mongoose.Schema({
     Contactno: { type: String, unique: true },
     Age: Number,
     Password: String,
-    numfollowing: {type:Number, default:0  },
-    numfollowers: {type:Number , default:0},
-    Followers:{type: [{
-        firstname: String,
-        lastname: String,
-        fusername: {type:String},
-    }] , sparse:true},
-    Following: {type: [{
-        firstname: String,
-        lastname: String,
-        fusername: {type:String},
-    }] , sparse:true}
+    numfollowing: { type: Number, default: 0 },
+    numfollowers: { type: Number, default: 0 },
+    Followers: {
+        type: [{
+            firstname: String,
+            lastname: String,
+            fusername: { type: String },
+        }], sparse: true
+    },
+    Following: {
+        type: [{
+            firstname: String,
+            lastname: String,
+            fusername: { type: String },
+        }], sparse: true
+    }
 });
 
+const subgredditschema = new mongoose.Schema({
+    PageId: { type: String, unique: true },
+    Moderator: { type: String, unique: true },
+    Name:String, // Name of Subreddit Page
+    Description:String,
+    Banned_keywords : String,
+    numfollowers: Number,
+    Followers: {
+        type: [{
+            mfirstname: String,
+            mlastname: String,
+            musername: String,
+            blocked: Boolean,
+        }], sparse: true
+    },
+    numposts: Number,
+    numvisitors: Number,
+    PendingRequest: {
+        type: [{
+            pfirstname: String,
+            plastname: String,
+            pusername: String,
+        }], sparse: true
+    },
+    numdeletedposts: Number,
+    numreportedposts: Number,
+    Reporters: {
+        type: [{
+            reportid: String,
+        }], sparse: true
+    },
+
+}, { timestamps: true })
+
+const reportschema = new mongoose.Schema({
+    ReportId: { type: String, unique: true },
+    Reportedby: String, // username of the person who reported
+    whomreported: String, // pageid of the subgreddit page reported
+    concern: String,
+    Postid: String, // to get text of post
+    Status: String, // ignored / blocked / reported / notselected
+    createdAt: { type: Date, default: Date.now },
+    expire_at: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 10 }, // expire after 10 days of non-activity , further do myDocument.expire_at = null to remove expiry
+})
 
 
-const User = mongoose.model('User', userschema)
+const User = mongoose.model('User', userschema);
+const Subgreddit = mongoose.model('Subgreddit',subgredditschema);
+const Report = mongoose.model('Report',reportschema);
 
 app.get('/api/hello', (req, res) => {
     res.json({ message: 'Hello World!' });
@@ -68,8 +125,8 @@ app.post('/api/signup', async (req, res) => {
         "Contactno": req.body.contactno,
         "Age": req.body.age,
         "Password": encryptedpassword,
-        "numfollowers":0,
-        "numfollowing":0,
+        "numfollowers": 0,
+        "numfollowing": 0,
     }
     const user = new User(data);
     await user.save()
@@ -126,7 +183,7 @@ app.post('/api/updatedetails', async (req, res) => {
         await tempuser[0].save();
 
 
-        let token = jwt.sign({ id: req.body.newdata.id, firstname: req.body.newdata.firstname, lastname: req.body.newdata.lastname, username: req.body.newdata.username, email: req.body.newdata.email, contactno: req.body.newdata.contactno, age: req.body.newdata.age , numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
+        let token = jwt.sign({ id: req.body.newdata.id, firstname: req.body.newdata.firstname, lastname: req.body.newdata.lastname, username: req.body.newdata.username, email: req.body.newdata.email, contactno: req.body.newdata.contactno, age: req.body.newdata.age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
 
         // console.log(resp)
 
@@ -159,34 +216,34 @@ app.post("/api/removefollower", async (req, res) => {
     let followee = req.body.followee;
     let follower = req.body.follower;
 
-    console.log(followee  , follower)
+    console.log(followee, follower)
 
     let tempuser = await User.find({ username: followee })
-    
+
     for (var i = 0; i < tempuser[0].Followers.length; i++) {
         if (tempuser[0].Followers[i].fusername === follower) {
             var spliced = tempuser[0].Followers.splice(i, 1);
             break;
         }
     }
-    tempuser[0].numfollowers = tempuser[0].numfollowers-1;
+    tempuser[0].numfollowers = tempuser[0].numfollowers - 1;
     await tempuser[0].save()
 
     let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
 
     // Logic for removal from follower's following list 
 
-    let tempuser1 = await User.find({username:follower});
+    let tempuser1 = await User.find({ username: follower });
     for (var i = 0; i < tempuser1[0].Following.length; i++) {
         if (tempuser1[0].Following[i].fusername === followee) {
             var spliced = tempuser1[0].Following.splice(i, 1);
             break;
         }
     }
-    tempuser1[0].numfollowing = tempuser1[0].numfollowing-1;
+    tempuser1[0].numfollowing = tempuser1[0].numfollowing - 1;
     await tempuser1[0].save()
 
-    res.status(200).json({Usertoken:token , Follower:tempuser1[0].Following})
+    res.status(200).json({ Usertoken: token, Follower: tempuser1[0].Following })
 
 })
 
@@ -196,62 +253,62 @@ app.post("/api/removefollowing", async (req, res) => {
 
 
     let tempuser = await User.find({ username: followee })
-    
+
     for (var i = 0; i < tempuser[0].Following.length; i++) {
         if (tempuser[0].Following[i].fusername === following) {
             var spliced = tempuser[0].Following.splice(i, 1);
             break;
         }
     }
-    tempuser[0].numfollowing = tempuser[0].numfollowing-1;
+    tempuser[0].numfollowing = tempuser[0].numfollowing - 1;
     await tempuser[0].save()
 
     let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
 
     // Logic for removal from following's follower list pending !!
-    let tempuser1 = await User.find({username:following});
+    let tempuser1 = await User.find({ username: following });
     for (var i = 0; i < tempuser1[0].Followers.length; i++) {
         if (tempuser1[0].Followers[i].fusername === followee) {
             var spliced = tempuser1[0].Followers.splice(i, 1);
             break;
         }
     }
-    tempuser1[0].numfollowers = tempuser1[0].numfollowers-1;
+    tempuser1[0].numfollowers = tempuser1[0].numfollowers - 1;
     await tempuser1[0].save()
 
-    res.status(200).json({Usertoken:token , Following:tempuser1[0].Followers})
+    res.status(200).json({ Usertoken: token, Following: tempuser1[0].Followers })
 
 })
 
-app.post('/api/fetchprofile',async(req,res)=>{
+app.post('/api/fetchprofile', async (req, res) => {
     let username = req.body.username;
     let tempuser = await User.find({ username: username })
 
     let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
 
-    res.status(200).json({token:token});
+    res.status(200).json({ token: token });
 })
 
-app.post('/api/follow' , async(req,res)=>{
+app.post('/api/follow', async (req, res) => {
     let user = req.body.user;
     let whotofollow = req.body.whotofollow;
 
-    let tempuser = await User.find({username:user});
-    let tempuser1 = await User.find({username:whotofollow});
+    let tempuser = await User.find({ username: user });
+    let tempuser1 = await User.find({ username: whotofollow });
 
     tempuser[0].Following.push({
-        firstname:tempuser1[0].firstname,
-        lastname:tempuser1[0].lastname,
-        fusername:tempuser1[0].username
+        firstname: tempuser1[0].firstname,
+        lastname: tempuser1[0].lastname,
+        fusername: tempuser1[0].username
     })
     tempuser[0].numfollowing = tempuser[0].numfollowing + 1;
 
     tempuser1[0].Followers.push({
-        firstname:tempuser[0].firstname,
-        lastname:tempuser[0].lastname,
-        fusername:tempuser[0].username
+        firstname: tempuser[0].firstname,
+        lastname: tempuser[0].lastname,
+        fusername: tempuser[0].username
     })
-    tempuser1[0].numfollowers = tempuser1[0].numfollowers+1;
+    tempuser1[0].numfollowers = tempuser1[0].numfollowers + 1;
 
     console.log(tempuser[0]);
 
@@ -260,7 +317,39 @@ app.post('/api/follow' , async(req,res)=>{
 
     let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
 
-    res.status(200).json({token:token});
+    res.status(200).json({ token: token });
+})
+
+app.post('/api/createsubgreddit',async(req,res)=>{
+    let data = req.body;
+    console.log(data)
+    pagedata = {
+        "PageId":uuidv4(),
+        "Moderator":req.body.moderator,
+        "Name":req.body.name,
+        "Description":req.body.description,
+        "Banned_keywords":req.body.banned_keywords,
+        "numfollowers":1,
+        "Followers":[{
+            "mfirstname":req.body.modfname,
+            "mlastname":req.body.modlname,
+            "musername":req.body.moderator,
+            "blocked":false
+        }],
+        "numposts":0,
+        "numvisitors":0,
+        "PendingRequest":[],
+        "numdeletedposts":0,
+        "numreportedposts":0,
+        "Reporters":[]
+    }
+
+    const page = new Subgreddit(pagedata);
+    await page.save();
+
+    console.log(page)
+    let token = jwt.sign({page}, 'jwtsecret');  
+    res.status(200).json({token:token})  ;
 })
 
 app.listen(3001, () => {
