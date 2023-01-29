@@ -11,9 +11,12 @@ import Auth from './components/Auth';
 import Followers from './components/Followers';
 import Following from './components/Following';
 import Otherprofile from './components/Otherprofile';
-import Manysubgreddits from './components/Manysubgreddits';
+import Mysubgreddits from './components/Mysubgreddits';
 import Createsubgredit from './components/Createsubgredit';
-
+import Subgredit from './components/Subgredit';
+import Createpost from './components/Createpost';
+import WithAuth from './components/WithAuth';
+import Home from './components/Home'
 function App() {
  
   const [user, setuser] = useState({})
@@ -21,15 +24,18 @@ function App() {
   return (
     <Router>
       <div className='App flex flex-col min-h-screen'>
-        <Navbar user={user} setuser={setuser}/>
+        <Navbar  />
         <Routes>
-          <Route exact path="/" element={<Profile user={user}></Profile>} ></Route>
+          <Route exact path="/" element={<Home></Home>} ></Route>
+          <Route exact path="/profile" element={<Profile></Profile>} ></Route>
           <Route path='/auth' element={<Auth ></Auth>} ></Route>
           <Route path='/otherprofile' element={<Otherprofile ></Otherprofile>} ></Route>
-          <Route exact path='/followers' element={<Followers ></Followers>} ></Route>
+          <Route exact path='/followers' element={<Followers />} ></Route>
           <Route exact path='/following' element={<Following ></Following>} ></Route>
-          <Route exact path='/mysubgreddits' element={<Manysubgreddits></Manysubgreddits>} ></Route>
+          <Route exact path='/mysubgreddits' element={<Mysubgreddits></Mysubgreddits>} ></Route>
+          <Route path='/subgreddit'   element={<Subgredit ></Subgredit>} ></Route>
           <Route exact path='/createsubgreddit' element={<Createsubgredit ></Createsubgredit>} ></Route>
+          <Route path='/createpost' element={<Createpost ></Createpost>} ></Route>
         </Routes>
         <Footer />
       </div>

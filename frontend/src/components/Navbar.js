@@ -7,13 +7,43 @@ import Signup from './Signup';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const Navbar = ({ user, setuser }) => {
+const Navbar = () => {
+
+  let defLinks = [{
+    linkto:'/mysubgreddits',
+    title:"My Subgreddits"
+  },{
+    linkto:'/profile',
+    title:"Profile"
+  },{
+    linkto:'/',
+    title:"Other Link"
+  },{
+    linkto:'/',
+    title:"Other Link"
+  }]
+
+  let newlinks = [{
+    linkto:'/',
+    title:'New Link'
+  },{
+    linkto:'/',
+    title:'New Link'
+  },{
+    linkto:'/',
+    title:'New Link'
+  },{
+    linkto:'/',
+    title:'New Link'
+  }]
+
   // const [path, setpath] = useState('')
+  const [user, setuser] = useState({ value: null })
+  const [links ,setlinks] = useState(defLinks)
 
   const logout = () => {
     localStorage.removeItem('token')
     setuser({ value: null })
-
     toast.success("You are Successfully logged Out")
 
   }
@@ -27,8 +57,13 @@ const Navbar = ({ user, setuser }) => {
     if (token) {
       setuser({ value: token })
     }
+    if(location.pathname === '/subgreddit')
+      setlinks(newlinks)
+    else
+      setlinks(defLinks)
   }, [location])
 
+  console.log(links)
   return (
 
     <header className="text-gray-600 body-font">
@@ -53,10 +88,18 @@ const Navbar = ({ user, setuser }) => {
           </a>
         </Link>
         <nav className="md:ml-auto md:mr-auto flex flex-wrap items-center text-base justify-center">
-          <Link to={'/mysubgreddits'} className="mr-5 hover:text-blue-600">My Subgreddits</Link>
-          <a className="mr-5 hover:text-blue-600">Second Link</a>
-          <a className="mr-5 hover:text-blue-600">Third Link</a>
-          <a className="mr-5 hover:text-blue-600">Fourth Link</a>
+          {links && links.map((link , index) => {
+            return (
+              <Link to={link.linkto} key={index} className="mr-5 hover:text-blue-600">{link.title}</Link>
+            )
+          })}
+          {!links && <>
+            <Link to={'/mysubgreddits'} className="mr-5 hover:text-blue-600">My Subgreddits</Link>
+            <Link className="mr-5 hover:text-blue-600">Other Links</Link>
+            <Link className="mr-5 hover:text-blue-600">Other Links</Link>
+            <Link className="mr-5 hover:text-blue-600">Other Links</Link>
+          </>
+          }
         </nav>
         {/* <Link to={'/signup'}> */}
         {!user.value && <Link to="/auth?mode=signup"> <button className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4 md:mt-0">Sign Up

@@ -5,7 +5,7 @@ var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 const {v4 : uuidv4} = require("uuid")
 const cors = require('cors');
-const { response } = require('express');
+
 const { MoneyOff } = require('@material-ui/icons');
 const app = express();
 
@@ -52,10 +52,11 @@ const userschema = new mongoose.Schema({
 
 const subgredditschema = new mongoose.Schema({
     PageId: { type: String, unique: true },
-    Moderator: { type: String, unique: true },
+    Moderator: { type: String},
     Name:String, // Name of Subreddit Page
     Description:String,
     Banned_keywords : String,
+    Tags: String,
     numfollowers: Number,
     Followers: {
         type: [{
@@ -93,12 +94,22 @@ const reportschema = new mongoose.Schema({
     Status: String, // ignored / blocked / reported / notselected
     createdAt: { type: Date, default: Date.now },
     expire_at: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 10 }, // expire after 10 days of non-activity , further do myDocument.expire_at = null to remove expiry
-})
+},{ timestamps: true })
 
+const postschema = new mongoose.Schema({
+    PostId: { type: String, unique: true },
+    Postedby: String, // username of the person who posted,
+    PostedIn: String, // pageid of the subgreddit page posted in,
+    Title:String,
+    Text: String,
+    Upvotes: Number,
+    Downvotes: Number,
+},{timestamps:true})
 
 const User = mongoose.model('User', userschema);
 const Subgreddit = mongoose.model('Subgreddit',subgredditschema);
 const Report = mongoose.model('Report',reportschema);
+const Post = mongoose.model('Post',postschema);
 
 app.get('/api/hello', (req, res) => {
     res.json({ message: 'Hello World!' });
@@ -322,13 +333,14 @@ app.post('/api/follow', async (req, res) => {
 
 app.post('/api/createsubgreddit',async(req,res)=>{
     let data = req.body;
-    console.log(data)
+    // console.log(data)
     pagedata = {
         "PageId":uuidv4(),
         "Moderator":req.body.moderator,
         "Name":req.body.name,
         "Description":req.body.description,
         "Banned_keywords":req.body.banned_keywords,
+        "Tags":req.body.tags,
         "numfollowers":1,
         "Followers":[{
             "mfirstname":req.body.modfname,
@@ -350,6 +362,41 @@ app.post('/api/createsubgreddit',async(req,res)=>{
     console.log(page)
     let token = jwt.sign({page}, 'jwtsecret');  
     res.status(200).json({token:token})  ;
+})
+
+app.post("/api/getmysubgreddits",async(req,res)=>{
+    let data = req.body;
+    let mysubgredits = await Subgreddit.find({Moderator:data.username})
+    let token = jwt.sign({mysubgredits},'jwtsecret');
+    res.status(200).json({token:token})
+})
+
+app.post("/api/createpost",async(req,res)=>{
+    let data = req.body;
+    console.log(data)
+    let postdata = {
+        "PostId":uuidv4(),
+        "PostedIn":data.pageid,
+        "Postedby":data.postedby,
+        "Title":data.title,
+        "Text":data.text,
+        "Upvotes":0,
+        "Downvotes":0,
+    }
+
+    const post = new Post(postdata);
+    await post.save();
+
+    let token = jwt.sign({post},'jwtsecret');
+    res.status(200).json({token:token});
+})
+
+app.post('/api/fetchposts',async (req,res)=>{
+    let data = req.body;
+    let posts = await Post.find({PostedIn:data.pageid});
+
+    let token = jwt.sign({posts},'jwtsecret');
+    res.status(200).json({token:token});
 })
 
 app.listen(3001, () => {

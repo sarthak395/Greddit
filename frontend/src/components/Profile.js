@@ -6,8 +6,9 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom'
+import Navbar from './Navbar'
 
-const Profile = (user) => {
+const Profile = () => {
 
   const [userdata, setuserdata] = useState({})
   const [editable, seteditable] = useState(false)
