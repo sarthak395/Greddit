@@ -399,6 +399,17 @@ app.post('/api/fetchposts',async (req,res)=>{
     res.status(200).json({token:token});
 })
 
+app.post('/api/fetchsubmembers',async(req,res)=>{
+    let data = req.body;
+    console.log(data)
+    let subdata = await Subgreddit.find({PageId:data.pageid});
+    
+    let followers = subdata[0].Followers;
+
+    let token = jwt.sign({followers},'jwtsecret');
+    res.status(200).json({token:token});
+})
+
 app.listen(3001, () => {
     console.log('Server started on port 3001');
 });

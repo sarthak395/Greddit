@@ -17,6 +17,8 @@ import Subgredit from './components/Subgredit';
 import Createpost from './components/Createpost';
 import WithAuth from './components/WithAuth';
 import Home from './components/Home'
+import Submembers from './components/Submembers';
+
 function App() {
  
   const [user, setuser] = useState({})
@@ -36,6 +38,7 @@ function App() {
           <Route path='/subgreddit'   element={<Subgredit ></Subgredit>} ></Route>
           <Route exact path='/createsubgreddit' element={<Createsubgredit ></Createsubgredit>} ></Route>
           <Route path='/createpost' element={<Createpost ></Createpost>} ></Route>
+          <Route path='/submembers'  element={<Submembers></Submembers>} ></Route>
         </Routes>
         <Footer />
       </div>
