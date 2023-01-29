@@ -9,6 +9,8 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const Navbar = () => {
 
+  let location = useLocation()
+
   let defLinks = [{
     linkto:'/mysubgreddits',
     title:"My Subgreddits"
@@ -24,8 +26,8 @@ const Navbar = () => {
   }]
 
   let newlinks = [{
-    linkto:'/',
-    title:'New Link'
+    linkto:`/submembers${location.search}`,
+    title:'Users'
   },{
     linkto:'/',
     title:'New Link'
@@ -48,7 +50,7 @@ const Navbar = () => {
 
   }
 
-  let location = useLocation()
+  
   // setpath(location.pathname)
 
   useEffect(() => {
