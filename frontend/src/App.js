@@ -18,6 +18,7 @@ import Createpost from './components/Createpost';
 import WithAuth from './components/WithAuth';
 import Home from './components/Home'
 import Submembers from './components/Submembers';
+import Followrequests from './components/Followrequests';
 
 function App() {
  
@@ -39,6 +40,7 @@ function App() {
           <Route exact path='/createsubgreddit' element={<Createsubgredit ></Createsubgredit>} ></Route>
           <Route path='/createpost' element={<Createpost ></Createpost>} ></Route>
           <Route path='/submembers'  element={<Submembers></Submembers>} ></Route>
+          <Route path='/subrequests'  element={<Followrequests></Followrequests>} ></Route>
         </Routes>
         <Footer />
       </div>

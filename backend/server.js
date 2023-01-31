@@ -384,6 +384,10 @@ app.post("/api/createpost",async(req,res)=>{
         "Downvotes":0,
     }
 
+    let pagedata = await Subgreddit.find({PageId:data.pageid});
+    pagedata[0].numposts = pagedata[0].numposts + 1;
+    await pagedata[0].save();
+
     const post = new Post(postdata);
     await post.save();
 
@@ -407,6 +411,63 @@ app.post('/api/fetchsubmembers',async(req,res)=>{
     let followers = subdata[0].Followers;
 
     let token = jwt.sign({followers},'jwtsecret');
+    res.status(200).json({token:token});
+})
+
+app.post('/api/fetchjoiningreq',async(req,res)=>{
+    let data = req.body;
+    let pagedata = await Subgreddit.find({PageId:data.pageid});
+
+    let requests = pagedata[0].PendingRequest;
+    let token = jwt.sign({requests},'jwtsecret');
+    res.status(200).json({token:token});
+})
+
+app.post('/api/acceptjoiningreq',async(req,res)=>{
+    let data = req.body;
+    let pagedata = await Subgreddit.find({PageId:data.pageid});
+
+    let requests = pagedata[0].PendingRequest;
+    let followers = pagedata[0].Followers;
+
+    let temp = requests.filter((request)=>{
+        return request.pusername === data.username;
+    });
+
+    followers.push({
+        mfirstname:temp[0].pfirstname,
+        mlastname:temp[0].plastname,
+        musername:temp[0].pusername,
+        blocked:false
+    });
+
+    pagedata[0].numfollowers = pagedata[0].numfollowers + 1;
+    
+    requests = requests.filter((request)=>{
+        return request.pusername !== data.username;
+    });
+
+    pagedata[0].PendingRequest = requests;
+    await pagedata[0].save();
+
+    let token = jwt.sign({requests},'jwtsecret');
+    res.status(200).json({token:token});
+})
+
+app.post('/api/rejectjoiningreq',async(req,res)=>{
+    let data = req.body;
+    let pagedata = await Subgreddit.find({PageId:data.pageid});
+
+    let requests = pagedata[0].PendingRequest;
+    
+    requests = requests.filter((request)=>{
+        return request.pusername !== data.username;
+    });
+
+    pagedata[0].PendingRequest = requests;
+    await pagedata[0].save();
+
+    let token = jwt.sign({requests},'jwtsecret');
     res.status(200).json({token:token});
 })
 

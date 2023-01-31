@@ -29,8 +29,8 @@ const Navbar = () => {
     linkto:`/submembers${location.search}`,
     title:'Users'
   },{
-    linkto:'/',
-    title:'New Link'
+    linkto:`/subrequests${location.search}`,
+    title:'Join requests'
   },{
     linkto:'/',
     title:'New Link'
