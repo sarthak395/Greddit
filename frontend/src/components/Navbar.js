@@ -26,10 +26,10 @@ const Navbar = () => {
   }]
 
   let newlinks = [{
-    linkto:`/submembers${location.search}`,
+    linkto:`/subgreddit/submembers${location.search}`,
     title:'Users'
   },{
-    linkto:`/subrequests${location.search}`,
+    linkto:`/subgreddit/subrequests${location.search}`,
     title:'Join requests'
   },{
     linkto:'/',
@@ -59,7 +59,8 @@ const Navbar = () => {
     if (token) {
       setuser({ value: token })
     }
-    if(location.pathname === '/subgreddit')
+    console.log((location.pathname).substring(0,11))
+    if((location.pathname).substring(0,11) === '/subgreddit')
       setlinks(newlinks)
     else
       setlinks(defLinks)

@@ -398,9 +398,10 @@ app.post("/api/createpost",async(req,res)=>{
 app.post('/api/fetchposts',async (req,res)=>{
     let data = req.body;
     let posts = await Post.find({PostedIn:data.pageid});
+    let subgreddit = await Subgreddit.find({PageId:data.pageid});
 
     let token = jwt.sign({posts},'jwtsecret');
-    res.status(200).json({token:token});
+    res.status(200).json({token:token , moderator:subgreddit[0].Moderator});
 })
 
 app.post('/api/fetchsubmembers',async(req,res)=>{
@@ -468,6 +469,14 @@ app.post('/api/rejectjoiningreq',async(req,res)=>{
     await pagedata[0].save();
 
     let token = jwt.sign({requests},'jwtsecret');
+    res.status(200).json({token:token});
+})
+
+app.get('/api/getallsubgreddits',async(req,res)=>{
+    let subgreddits = await Subgreddit.find({});
+    console.log(subgreddits);
+    let token = jwt.sign({subgreddits},'jwtsecret');
+
     res.status(200).json({token:token});
 })
 

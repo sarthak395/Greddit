@@ -38,9 +38,9 @@ function App() {
           <Route exact path='/mysubgreddits' element={<Mysubgreddits></Mysubgreddits>} ></Route>
           <Route path='/subgreddit'   element={<Subgredit ></Subgredit>} ></Route>
           <Route exact path='/createsubgreddit' element={<Createsubgredit ></Createsubgredit>} ></Route>
-          <Route path='/createpost' element={<Createpost ></Createpost>} ></Route>
-          <Route path='/submembers'  element={<Submembers></Submembers>} ></Route>
-          <Route path='/subrequests'  element={<Followrequests></Followrequests>} ></Route>
+          <Route path='/subgreddit/createpost' element={<Createpost ></Createpost>} ></Route>
+          <Route path='/subgreddit/submembers'  element={<Submembers></Submembers>} ></Route>
+          <Route path='/subgreddit/subrequests'  element={<Followrequests></Followrequests>} ></Route>
         </Routes>
         <Footer />
       </div>
