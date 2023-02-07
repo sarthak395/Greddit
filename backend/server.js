@@ -480,6 +480,38 @@ app.get('/api/getallsubgreddits',async(req,res)=>{
     res.status(200).json({token:token});
 })
 
+app.post('/api/joinsubgreddit',async(req,res)=>{
+    let data = req.body;
+    let pagedata = await Subgreddit.find({PageId:data.pageid});
+    let user = await User.find({username:data.username});
+
+    let pendingrequests = pagedata[0].PendingRequest;
+    pendingrequests.push({
+        pfirstname:user[0].firstname,
+        plastname:user[0].lastname,
+        pusername:user[0].username
+    });
+
+    pagedata[0].PendingRequest = pendingrequests;
+    await pagedata[0].save();
+    res.status(200).json({message:"Request Sent"});
+})
+
+app.post('/api/leavepage',async(req,res)=>{
+    let data = req.body;
+    let pagedata = await Subgreddit.find({PageId:data.pageid});
+    let followers = pagedata[0].Followers;
+    followers = followers.filter((follower)=>{
+        return follower.musername !== data.username;
+    });
+
+    pagedata[0].Followers = followers;
+    pagedata.numfollowers = pagedata.numfollowers - 1;
+    await pagedata[0].save();
+
+    res.status(200).json({message:"Left Page"});
+})
+
 app.listen(3001, () => {
     console.log('Server started on port 3001');
 });
