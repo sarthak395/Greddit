@@ -309,6 +309,7 @@ app.post('/api/fetchprofile', async (req, res) => {
 })
 
 app.post('/api/follow', async (req, res) => {
+    console.log(req.body);
     let user = req.body.user;
     let whotofollow = req.body.whotofollow;
 

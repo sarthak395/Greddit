@@ -14,6 +14,9 @@ const Subgredit = () => {
     let navigate = useNavigate();
     let location = useLocation();
 
+    let usertoken = localStorage.getItem('token');
+    let user_username = jwt(usertoken).username;
+
     const [pagereload, setpagereload] = useState(false);
     const [Subname, setSubname] = useState();
     const [Subdesc, setSubdesc] = useState()
@@ -39,11 +42,7 @@ const Subgredit = () => {
             else {
                 let data = jwt(resp.token);
 
-                let usertoken = localStorage.getItem('token');
-                let userdata = jwt(usertoken)
-
-
-                if (userdata.username === data.moderator) {
+                if (user_username === data.moderator) {
                     setcreatepostaccess(true)
                 }
 
@@ -64,8 +63,7 @@ const Subgredit = () => {
     }, [pagereload])
 
     const addcomment = async (postid, index) => {
-        let usertoken = localStorage.getItem('token');
-        let user_username = jwt(usertoken).username;
+
 
         let comment = commentbox[index];
 
@@ -86,7 +84,7 @@ const Subgredit = () => {
         else {
             toast.success(resp.message);
         }
-        
+
 
         setpagereload(!pagereload);
 
@@ -99,6 +97,25 @@ const Subgredit = () => {
         let temp = commentbox;
         temp[e.target.id] = e.target.value;
         setcommentbox(temp);
+    }
+
+    const followmod = async (postmoderator) => {
+        let res = await fetch('http://localhost:3001/api/follow', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body:
+                JSON.stringify({ user: user_username, whotofollow: postmoderator })// body data type must match "Content-Type" header
+        })
+        let resp = await res.json();
+        if (resp.error) {
+            toast.error(resp.error);
+        }
+        else {
+            localStorage.setItem("token", resp.token);
+            toast.success("Followed Mod Successfully");
+        }
     }
 
     // const togglecommentbox = (index) => {
@@ -223,11 +240,13 @@ const Subgredit = () => {
 
                                                 <input id={index} onChange={handlecommentbox} type="text" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mb-2" placeholder='Add New Comment' />
 
-                                                <button onClick={()=>{addcomment(post._doc.PostId , index)}} type="button" className="text-white bg-blue-400 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Post Comment</button>
+                                                <button onClick={() => { addcomment(post._doc.PostId, index) }} type="button" className="text-white bg-blue-400 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Post Comment</button>
                                             </div>
 
                                         </div>
 
+
+                                        <button onClick={() => { followmod(post._doc.Postedby) }} type="button" className="text-white bg-green-500 hover:bg-blue-800 focus:ring-4 w-2/3 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Follow</button>
 
 
 
