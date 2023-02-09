@@ -20,7 +20,7 @@ const Profile = () => {
     var token = localStorage.getItem("token")
     setuserdata(jwt(token))
     setnewdata(jwt(token))
-  }, [])
+  }, [userdata])
 
   let navigate = useNavigate()
   const updateData = e => {

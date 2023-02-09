@@ -6,6 +6,7 @@
     "@material-ui/icons": "^4.11.3",
     "@mui/material": "^5.11.5",
     "@mui/styled-engine-sc": "^5.11.0",
+    "react-icons": "^4.7.1",
     "styled-components": "^5.3.6"
   }
 }

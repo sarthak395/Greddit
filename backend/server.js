@@ -3,7 +3,7 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
-const {v4 : uuidv4} = require("uuid")
+const { v4: uuidv4 } = require("uuid")
 const cors = require('cors');
 
 const { MoneyOff } = require('@material-ui/icons');
@@ -52,10 +52,10 @@ const userschema = new mongoose.Schema({
 
 const subgredditschema = new mongoose.Schema({
     PageId: { type: String, unique: true },
-    Moderator: { type: String},
-    Name:String, // Name of Subreddit Page
-    Description:String,
-    Banned_keywords : String,
+    Moderator: { type: String },
+    Name: String, // Name of Subreddit Page
+    Description: String,
+    Banned_keywords: String,
     Tags: String,
     numfollowers: Number,
     Followers: {
@@ -94,22 +94,30 @@ const reportschema = new mongoose.Schema({
     Status: String, // ignored / blocked / reported / notselected
     createdAt: { type: Date, default: Date.now },
     expire_at: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 10 }, // expire after 10 days of non-activity , further do myDocument.expire_at = null to remove expiry
-},{ timestamps: true })
+}, { timestamps: true })
 
 const postschema = new mongoose.Schema({
     PostId: { type: String, unique: true },
     Postedby: String, // username of the person who posted,
     PostedIn: String, // pageid of the subgreddit page posted in,
-    Title:String,
+    Title: String,
     Text: String,
+
     Upvotes: Number,
     Downvotes: Number,
-},{timestamps:true})
+}, { timestamps: true })
+
+const postcomment = new mongoose.Schema({
+    PostId: String,
+    Commentedby: String, // username of the person who commented,
+    Comment: String,
+})
 
 const User = mongoose.model('User', userschema);
-const Subgreddit = mongoose.model('Subgreddit',subgredditschema);
-const Report = mongoose.model('Report',reportschema);
-const Post = mongoose.model('Post',postschema);
+const Subgreddit = mongoose.model('Subgreddit', subgredditschema);
+const Report = mongoose.model('Report', reportschema);
+const Post = mongoose.model('Post', postschema);
+const PostComment = mongoose.model('PostComment', postcomment);
 
 app.get('/api/hello', (req, res) => {
     res.json({ message: 'Hello World!' });
@@ -331,177 +339,193 @@ app.post('/api/follow', async (req, res) => {
     res.status(200).json({ token: token });
 })
 
-app.post('/api/createsubgreddit',async(req,res)=>{
+app.post('/api/createsubgreddit', async (req, res) => {
     let data = req.body;
     // console.log(data)
     pagedata = {
-        "PageId":uuidv4(),
-        "Moderator":req.body.moderator,
-        "Name":req.body.name,
-        "Description":req.body.description,
-        "Banned_keywords":req.body.banned_keywords,
-        "Tags":req.body.tags,
-        "numfollowers":1,
-        "Followers":[{
-            "mfirstname":req.body.modfname,
-            "mlastname":req.body.modlname,
-            "musername":req.body.moderator,
-            "blocked":false
+        "PageId": uuidv4(),
+        "Moderator": req.body.moderator,
+        "Name": req.body.name,
+        "Description": req.body.description,
+        "Banned_keywords": req.body.banned_keywords,
+        "Tags": req.body.tags,
+        "numfollowers": 1,
+        "Followers": [{
+            "mfirstname": req.body.modfname,
+            "mlastname": req.body.modlname,
+            "musername": req.body.moderator,
+            "blocked": false
         }],
-        "numposts":0,
-        "numvisitors":0,
-        "PendingRequest":[],
-        "numdeletedposts":0,
-        "numreportedposts":0,
-        "Reporters":[]
+        "numposts": 0,
+        "numvisitors": 0,
+        "PendingRequest": [],
+        "numdeletedposts": 0,
+        "numreportedposts": 0,
+        "Reporters": []
     }
 
     const page = new Subgreddit(pagedata);
     await page.save();
 
     console.log(page)
-    let token = jwt.sign({page}, 'jwtsecret');  
-    res.status(200).json({token:token})  ;
+    let token = jwt.sign({ page }, 'jwtsecret');
+    res.status(200).json({ token: token });
 })
 
-app.post("/api/getmysubgreddits",async(req,res)=>{
+app.post("/api/getmysubgreddits", async (req, res) => {
     let data = req.body;
-    let mysubgredits = await Subgreddit.find({Moderator:data.username})
-    let token = jwt.sign({mysubgredits},'jwtsecret');
-    res.status(200).json({token:token})
+    let mysubgredits = await Subgreddit.find({ Moderator: data.username })
+    let token = jwt.sign({ mysubgredits }, 'jwtsecret');
+    res.status(200).json({ token: token })
 })
 
-app.post("/api/createpost",async(req,res)=>{
+app.post("/api/createpost", async (req, res) => {
     let data = req.body;
     console.log(data)
     let postdata = {
-        "PostId":uuidv4(),
-        "PostedIn":data.pageid,
-        "Postedby":data.postedby,
-        "Title":data.title,
-        "Text":data.text,
-        "Upvotes":0,
-        "Downvotes":0,
+        "PostId": uuidv4(),
+        "PostedIn": data.pageid,
+        "Postedby": data.postedby,
+        "Title": data.title,
+        "Text": data.text,
+        "Upvotes": 0,
+        "Downvotes": 0,
     }
 
-    let pagedata = await Subgreddit.find({PageId:data.pageid});
+    let pagedata = await Subgreddit.find({ PageId: data.pageid });
     pagedata[0].numposts = pagedata[0].numposts + 1;
     await pagedata[0].save();
 
     const post = new Post(postdata);
     await post.save();
 
-    let token = jwt.sign({post},'jwtsecret');
-    res.status(200).json({token:token});
+    let token = jwt.sign({ post }, 'jwtsecret');
+    res.status(200).json({ token: token });
 })
 
-app.post('/api/fetchposts',async (req,res)=>{
+app.post('/api/fetchposts', async (req, res) => {
     let data = req.body;
-    let posts = await Post.find({PostedIn:data.pageid});
-    let subgreddit = await Subgreddit.find({PageId:data.pageid});
+    let posts = await Post.find({ PostedIn: data.pageid });
+    let subgreddit = await Subgreddit.find({ PageId: data.pageid });
 
-    let token = jwt.sign({posts},'jwtsecret');
-    res.status(200).json({token:token , moderator:subgreddit[0].Moderator});
+    let completeposts = [];
+    
+    await Promise.all(
+        posts.map(async (post) => {  // .map function IGNORES ASYNC
+            
+            const promise = new Promise((resolve, reject) => {
+                return PostComment.find({ PostId: post.PostId }, (err, comments) => {
+                    if (err) reject(err);
+                    resolve(comments);
+                });
+            });
+            const comments = await promise;
+            completeposts.push({...post,comments:comments});
+            return post;
+    }));
+
+    let token = jwt.sign({ posts: completeposts, moderator: subgreddit[0].Moderator, Name: subgreddit[0].Name, Description: subgreddit[0].Description }, 'jwtsecret');
+    res.status(200).json({ token: token });
 })
 
-app.post('/api/fetchsubmembers',async(req,res)=>{
+app.post('/api/fetchsubmembers', async (req, res) => {
     let data = req.body;
     console.log(data)
-    let subdata = await Subgreddit.find({PageId:data.pageid});
-    
+    let subdata = await Subgreddit.find({ PageId: data.pageid });
+
     let followers = subdata[0].Followers;
 
-    let token = jwt.sign({followers},'jwtsecret');
-    res.status(200).json({token:token});
+    let token = jwt.sign({ followers }, 'jwtsecret');
+    res.status(200).json({ token: token });
 })
 
-app.post('/api/fetchjoiningreq',async(req,res)=>{
+app.post('/api/fetchjoiningreq', async (req, res) => {
     let data = req.body;
-    let pagedata = await Subgreddit.find({PageId:data.pageid});
+    let pagedata = await Subgreddit.find({ PageId: data.pageid });
 
     let requests = pagedata[0].PendingRequest;
-    let token = jwt.sign({requests},'jwtsecret');
-    res.status(200).json({token:token});
+    let token = jwt.sign({ requests }, 'jwtsecret');
+    res.status(200).json({ token: token });
 })
 
-app.post('/api/acceptjoiningreq',async(req,res)=>{
+app.post('/api/acceptjoiningreq', async (req, res) => {
     let data = req.body;
-    let pagedata = await Subgreddit.find({PageId:data.pageid});
+    let pagedata = await Subgreddit.find({ PageId: data.pageid });
 
     let requests = pagedata[0].PendingRequest;
     let followers = pagedata[0].Followers;
 
-    let temp = requests.filter((request)=>{
+    let temp = requests.filter((request) => {
         return request.pusername === data.username;
     });
 
     followers.push({
-        mfirstname:temp[0].pfirstname,
-        mlastname:temp[0].plastname,
-        musername:temp[0].pusername,
-        blocked:false
+        mfirstname: temp[0].pfirstname,
+        mlastname: temp[0].plastname,
+        musername: temp[0].pusername,
+        blocked: false
     });
 
     pagedata[0].numfollowers = pagedata[0].numfollowers + 1;
-    
-    requests = requests.filter((request)=>{
+
+    requests = requests.filter((request) => {
         return request.pusername !== data.username;
     });
 
     pagedata[0].PendingRequest = requests;
     await pagedata[0].save();
 
-    let token = jwt.sign({requests},'jwtsecret');
-    res.status(200).json({token:token});
+    let token = jwt.sign({ requests }, 'jwtsecret');
+    res.status(200).json({ token: token });
 })
 
-app.post('/api/rejectjoiningreq',async(req,res)=>{
+app.post('/api/rejectjoiningreq', async (req, res) => {
     let data = req.body;
-    let pagedata = await Subgreddit.find({PageId:data.pageid});
+    let pagedata = await Subgreddit.find({ PageId: data.pageid });
 
     let requests = pagedata[0].PendingRequest;
-    
-    requests = requests.filter((request)=>{
+
+    requests = requests.filter((request) => {
         return request.pusername !== data.username;
     });
 
     pagedata[0].PendingRequest = requests;
     await pagedata[0].save();
 
-    let token = jwt.sign({requests},'jwtsecret');
-    res.status(200).json({token:token});
+    let token = jwt.sign({ requests }, 'jwtsecret');
+    res.status(200).json({ token: token });
 })
 
-app.get('/api/getallsubgreddits',async(req,res)=>{
+app.get('/api/getallsubgreddits', async (req, res) => {
     let subgreddits = await Subgreddit.find({});
     console.log(subgreddits);
-    let token = jwt.sign({subgreddits},'jwtsecret');
+    let token = jwt.sign({ subgreddits }, 'jwtsecret');
 
-    res.status(200).json({token:token});
+    res.status(200).json({ token: token });
 })
 
-app.post('/api/joinsubgreddit',async(req,res)=>{
+app.post('/api/joinsubgreddit', async (req, res) => {
     let data = req.body;
-    let pagedata = await Subgreddit.find({PageId:data.pageid});
-    let user = await User.find({username:data.username});
+    let pagedata = await Subgreddit.find({ PageId: data.pageid });
+    let user = await User.find({ username: data.username });
 
     let pendingrequests = pagedata[0].PendingRequest;
     pendingrequests.push({
-        pfirstname:user[0].firstname,
-        plastname:user[0].lastname,
-        pusername:user[0].username
+        pfirstname: user[0].firstname,
+        plastname: user[0].lastname,
+        pusername: user[0].username
     });
 
     pagedata[0].PendingRequest = pendingrequests;
     await pagedata[0].save();
-    res.status(200).json({message:"Request Sent"});
+    res.status(200).json({ message: "Request Sent" });
 })
 
-app.post('/api/leavepage',async(req,res)=>{
+app.post('/api/leavepage', async (req, res) => {
     let data = req.body;
-    let pagedata = await Subgreddit.find({PageId:data.pageid});
+    let pagedata = await Subgreddit.find({ PageId: data.pageid });
     let followers = pagedata[0].Followers;
-    followers = followers.filter((follower)=>{
+    followers = followers.filter((follower) => {
         return follower.musername !== data.username;
     });
 
@@ -509,7 +533,38 @@ app.post('/api/leavepage',async(req,res)=>{
     pagedata.numfollowers = pagedata.numfollowers - 1;
     await pagedata[0].save();
 
-    res.status(200).json({message:"Left Page"});
+    res.status(200).json({ message: "Left Page" });
+})
+
+app.post('/api/upvotepost', async (req, res) => {
+    let data = req.body;
+    let post = await Post.find({ PostId: data.postid });
+    post[0].Upvotes = post[0].Upvotes + 1;
+    await post[0].save();
+
+    res.status(200).json({ message: "Upvoted" });
+})
+
+app.post('/api/downvotepost', async (req, res) => {
+    let data = req.body;
+    let post = await Post.find({ PostId: data.postid });
+    post[0].Downvotes = post[0].Downvotes + 1;
+    await post[0].save();
+
+    res.status(200).json({ message: "Downvoted" });
+})
+
+app.post('/api/commentpost', async (req, res) => {
+    let data = req.body;
+    let postcomment  = new PostComment({
+        "PostId": data.postid,
+        "Comment": data.comment,
+        "Commentedby":data.username
+    });
+
+    await postcomment.save();
+
+    res.status(200).json({ message: "Commented" });
 })
 
 app.listen(3001, () => {

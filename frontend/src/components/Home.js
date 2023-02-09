@@ -4,6 +4,9 @@ import jwt from 'jwt-decode' // import dependency
 import Fuse from 'fuse.js';
 import { Link } from 'react-router-dom';
 import { Sort } from '@material-ui/icons';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import WithAuth from './WithAuth';
 
 const Home = () => {
 
@@ -86,14 +89,14 @@ const Home = () => {
     });
     let resp = await res.json();
     if (resp.error) {
-      console.log(resp.error);
+      toast.error(resp.error);
     }
     else {
-      console.log(resp.message);
+      toast.success(resp.message);
     }
   }
 
-  const leavepage = async(pageid) => {
+  const leavepage = async (pageid) => {
     let res = await fetch('http://localhost:3001/api/leavepage', {
       method: 'POST',
       headers: {
@@ -114,18 +117,18 @@ const Home = () => {
   }
 
   const handlesortval = (e) => {
-   setsortorder(e.target.value);
+    setsortorder(e.target.value);
   }
 
-  const handlesort = (sub) =>{
+  const handlesort = (sub) => {
 
-    if (sortorder=== "alpha") {
+    if (sortorder === "alpha") {
       return subgreddits.sort(sortalpha);
     }
     else if (sortorder === "followers") {
       return subgreddits.sort(sortfollowers);
     }
-    else if(sortorder === "date"){
+    else if (sortorder === "date") {
       return subgreddits.sort(sortdate)
     }
     else
@@ -174,6 +177,18 @@ const Home = () => {
 
   return (
     <div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       {/* SEARCH BAR */}
       <label for="default-search" className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
@@ -312,59 +327,60 @@ const Home = () => {
       {/* DISPLAYED SUBGREDDITS */}
       <section className="text-gray-600 body-font">
         <div className="container px-5 py-24 mx-auto">
-      {/* SORTING TAGS */}
-      
-      <select id="countries" onChange={handlesortval} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mb-10 w-4/12">
-        <option value="alpha" selected>Alphabetically </option>
-        <option value="followers">Number Followers </option>
-        <option value="date">Creation Date</option>
-      </select>
+          {/* SORTING TAGS */}
 
-            {/* JOINED SUBGREDDITS */}
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Joined Subgreddits</h2>
+          <select id="countries" onChange={handlesortval} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mb-10 w-4/12">
+            <option value="alpha" selected>Alphabetically </option>
+            <option value="followers">Number Followers </option>
+            <option value="date">Creation Date</option>
+          </select>
+
+          {/* JOINED SUBGREDDITS */}
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Joined Subgreddits</h2>
           <div className="flex flex-wrap -m-4 mb-6">
 
             {/* WITH SEARCH BAR */}
             {searched && todisplaysubgreddit.map((subgreddit) => {
-              if(subgreddit.item.Followers.filter(e => e.musername === user_username).length > 0){
-              return (
-                <div key={subgreddit.PageId} className="p-4 lg:w-1/3">
-                  <div className="h-full bg-gray-100 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative">
-                    <h2 className="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">{subgreddit.item.Tags}</h2>
-                    <h1 className="title-font sm:text-2xl text-xl font-medium text-gray-900 mb-3">{subgreddit.item.Name}</h1>
-                    <p className="leading-relaxed mb-3">{subgreddit.item.Description}</p>
-                    <h3>Banned Keywords</h3>
-                    <p className="leading-relaxed mb-3 text-red-600">{subgreddit.item.Banned_keywords}</p>
-                    <Link to={`/subgreddit?${subgreddit.item.PageId}`} className="text-indigo-500 inline-flex items-center">Learn More
-                      <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14"></path>
-                        <path d="M12 5l7 7-7 7"></path>
-                      </svg>
-                    </Link>
+              if (subgreddit.item.Followers.filter(e => e.musername === user_username).length > 0) {
+                return (
+                  <div key={subgreddit.PageId} className="p-4 lg:w-1/3">
+                    <div className="h-full bg-gray-100 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative">
+                      <h2 className="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">{subgreddit.item.Tags}</h2>
+                      <h1 className="title-font sm:text-2xl text-xl font-medium text-gray-900 mb-3">{subgreddit.item.Name}</h1>
+                      <p className="leading-relaxed mb-3">{subgreddit.item.Description}</p>
+                      <h3>Banned Keywords</h3>
+                      <p className="leading-relaxed mb-3 text-red-600">{subgreddit.item.Banned_keywords}</p>
+                      <Link to={`/subgreddit?${subgreddit.item.PageId}`} className="text-indigo-500 inline-flex items-center">Learn More
+                        <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M5 12h14"></path>
+                          <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                      </Link>
 
-                    {(subgreddit.item.Moderator!=user_username) && <button onClick={()=>leavepage(subgreddit.item.PageId)} className="flex mx-auto mt-16 text-white bg-red-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-red-600 rounded text-lg">Leave</button>}
+                      {(subgreddit.item.Moderator != user_username) && <button onClick={() => leavepage(subgreddit.item.PageId)} className="flex mx-auto mt-16 text-white bg-red-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-red-600 rounded text-lg">Leave</button>}
 
-                    <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
-                      <span className="text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
-                        <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>{subgreddit.item.numfollowers} followers
-                      </span>
-                      <span className="text-gray-400 inline-flex items-center leading-none text-sm">
-                        <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                          <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path>
-                        </svg>{subgreddit.item.numposts} posts
-                      </span>
+                      <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
+                        <span className="text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
+                          <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>{subgreddit.item.numfollowers} followers
+                        </span>
+                        <span className="text-gray-400 inline-flex items-center leading-none text-sm">
+                          <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path>
+                          </svg>{subgreddit.item.numposts} posts
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )
+              }
             })}
 
             {/* WITHOUT SEARCH BAR */}
             {!searched && handlesort(subgreddits).map((subgreddit) => {
-              if(subgreddit.Followers.filter(e => e.musername === user_username).length > 0){
+              if (subgreddit.Followers.filter(e => e.musername === user_username).length > 0) {
                 return (
                   <div key={subgreddit.PageId} className="p-4 lg:w-1/3">
                     <div className="h-full bg-gray-100 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative">
@@ -380,7 +396,7 @@ const Home = () => {
                         </svg>
                       </Link>
 
-                     {(subgreddit.Moderator!=user_username) && <button onClick={()=>leavepage(subgreddit.PageId)} className="flex mx-auto mt-16 text-white bg-red-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-red-600 rounded text-lg">Leave</button> }
+                      {(subgreddit.Moderator != user_username) && <button onClick={() => leavepage(subgreddit.PageId)} className="flex mx-auto mt-16 text-white bg-red-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-red-600 rounded text-lg">Leave</button>}
 
                       <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
                         <span className="text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
@@ -397,54 +413,56 @@ const Home = () => {
                       </div>
                     </div>
                   </div>
-                )}
+                )
+              }
             })}
           </div>
 
-            {/* NOT JOINED SUBGREDDITS */}
+          {/* NOT JOINED SUBGREDDITS */}
           <h2 className='text-2xl font-bold text-gray-900 mb-6'>Subgreddits you dont Follow</h2>
           <div className="flex flex-wrap -m-4">
             {/* WITH SEARCH BAR */}
             {searched && todisplaysubgreddit.map((subgreddit) => {
-              if(subgreddit.item.Followers.filter(e => e.musername === user_username).length == 0){
-              return (
-                <div key={subgreddit.PageId} className="p-4 lg:w-1/3">
-                  <div className="h-full bg-gray-100 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative">
-                    <h2 className="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">{subgreddit.item.Tags}</h2>
-                    <h1 className="title-font sm:text-2xl text-xl font-medium text-gray-900 mb-3">{subgreddit.item.Name}</h1>
-                    <p className="leading-relaxed mb-3">{subgreddit.item.Description}</p>
-                    <h3>Banned Keywords</h3>
-                    <p className="leading-relaxed mb-3 text-red-600">{subgreddit.item.Banned_keywords}</p>
-                    <Link to={`/subgreddit?${subgreddit.item.PageId}`} className="text-indigo-500 inline-flex items-center">Learn More
-                      <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14"></path>
-                        <path d="M12 5l7 7-7 7"></path>
-                      </svg>
-                    </Link>
+              if (subgreddit.item.Followers.filter(e => e.musername === user_username).length == 0) {
+                return (
+                  <div key={subgreddit.PageId} className="p-4 lg:w-1/3">
+                    <div className="h-full bg-gray-100 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative">
+                      <h2 className="tracking-widest text-xs title-font font-medium text-gray-400 mb-1">{subgreddit.item.Tags}</h2>
+                      <h1 className="title-font sm:text-2xl text-xl font-medium text-gray-900 mb-3">{subgreddit.item.Name}</h1>
+                      <p className="leading-relaxed mb-3">{subgreddit.item.Description}</p>
+                      <h3>Banned Keywords</h3>
+                      <p className="leading-relaxed mb-3 text-red-600">{subgreddit.item.Banned_keywords}</p>
+                      <Link to={`/subgreddit?${subgreddit.item.PageId}`} className="text-indigo-500 inline-flex items-center">Learn More
+                        <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M5 12h14"></path>
+                          <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                      </Link>
 
-                    <button onClick={()=>followreq(subgreddit.item.PageId)} className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-indigo-600 rounded text-lg">Follow</button>
+                      <button onClick={() => followreq(subgreddit.item.PageId)} className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-indigo-600 rounded text-lg">Follow</button>
 
-                    <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
-                      <span className="text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
-                        <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>{subgreddit.item.numfollowers} followers
-                      </span>
-                      <span className="text-gray-400 inline-flex items-center leading-none text-sm">
-                        <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                          <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path>
-                        </svg>{subgreddit.item.numposts} posts
-                      </span>
+                      <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
+                        <span className="text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
+                          <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>{subgreddit.item.numfollowers} followers
+                        </span>
+                        <span className="text-gray-400 inline-flex items-center leading-none text-sm">
+                          <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path>
+                          </svg>{subgreddit.item.numposts} posts
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )
+              }
             })}
 
             {/* WITHOUT SEARCH BAR */}
             {!searched && handlesort(subgreddits).map((subgreddit) => {
-              if(subgreddit.Followers.filter(e => e.musername === user_username).length == 0){
+              if (subgreddit.Followers.filter(e => e.musername === user_username).length == 0) {
                 return (
                   <div key={subgreddit.PageId} className="p-4 lg:w-1/3">
                     <div className="h-full bg-gray-100 bg-opacity-75 px-8 pt-16 pb-24 rounded-lg overflow-hidden text-center relative">
@@ -460,7 +478,7 @@ const Home = () => {
                         </svg>
                       </Link>
 
-                      <button onClick={()=>followreq(subgreddit.PageId)} className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-indigo-600 rounded text-lg">Follow</button>
+                      <button onClick={() => followreq(subgreddit.PageId)} className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-indigo-600 rounded text-lg">Follow</button>
 
                       <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
                         <span className="text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
@@ -477,14 +495,15 @@ const Home = () => {
                       </div>
                     </div>
                   </div>
-                )}
+                )
+              }
             })}
           </div>
-          
+
         </div>
       </section>
     </div>
   );
 }
 
-export default Home
+export default WithAuth(Home);
