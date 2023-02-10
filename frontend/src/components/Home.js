@@ -109,10 +109,10 @@ const Home = () => {
     });
     let resp = await res.json();
     if (resp.error) {
-      console.log(resp.error);
+      toast.error(resp.error);
     }
     else {
-      console.log(resp.message);
+      toast.success(resp.message);
     }
   }
 

@@ -7,9 +7,9 @@ import Navbar from './Navbar';
 import { IoMdThumbsUp, IoMdThumbsDown, IoIosArrowDropdown } from "react-icons/io";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { CiSaveUp1 } from "react-icons/ci";
+import { BsFillBackspaceReverseFill } from "react-icons/bs";
 
-const Subgredit = () => {
+const SavedPosts = () => {
 
     let navigate = useNavigate();
     let location = useLocation();
@@ -18,21 +18,19 @@ const Subgredit = () => {
     let user_username = jwt(usertoken).username;
 
     const [pagereload, setpagereload] = useState(false);
-    const [Subname, setSubname] = useState();
-    const [Subdesc, setSubdesc] = useState()
     const [pageid, setpageid] = useState(location.search.slice(1))
     const [posts, setposts] = useState([]);
     const [commentbox, setcommentbox] = useState([]);
 
     useEffect(() => {
         const fetchdata = async () => {
-            let res = await fetch('http://localhost:3001/api/fetchposts', {
+            let res = await fetch('http://localhost:3001/api/getsavedposts', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body:
-                    JSON.stringify({ pageid: pageid })// body data type must match "Content-Type" header
+                    JSON.stringify({ username:user_username })// body data type must match "Content-Type" header
             })
             let resp = await res.json()
             if (resp.error) {
@@ -50,12 +48,9 @@ const Subgredit = () => {
 
                 setcommentbox(commentbox);
                 setposts(data.posts);
-                setSubname(data.Name);
-                setSubdesc(data.Description);
             }
         }
         fetchdata();
-
     }, [pagereload])
 
     const addcomment = async (postid, index) => {
@@ -157,8 +152,8 @@ const Subgredit = () => {
         }
     }
 
-    const savepost = async (postid) => {
-        let res = await fetch('http://localhost:3001/api/savepost', {
+    const unsavepost = async (postid) => {
+        let res = await fetch('http://localhost:3001/api/unsavepost', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -173,6 +168,7 @@ const Subgredit = () => {
         else {
             toast.success(resp.message);
         }
+        setpagereload(!pagereload);
     }
 
     return (
@@ -192,8 +188,8 @@ const Subgredit = () => {
                 />
                 <div className="container px-5 py-24 mx-auto">
                     <div className="flex flex-wrap w-full mb-20 flex-col items-center text-center">
-                        <h1 className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900">{Subname}</h1>
-                        <p className='leading-relaxed text-base'>{Subdesc}</p>
+                        <h1 className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900">Saved Posts</h1>
+                        <p className='leading-relaxed text-base'>Find all your saved posts here</p>
                     </div>
                     <div className="flex flex-wrap -m-4">
 
@@ -203,7 +199,7 @@ const Subgredit = () => {
                                 <div key={post._doc.PostId} className="xl:w-1/3 md:w-1/2 p-4">
                                     <div className="border border-gray-200 p-6 rounded-lg">
                                         <div className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-4">
-                                            <CiSaveUp1 className='text-2xl cursor-pointer' onClick={()=>{savepost(post._doc.PostId)}}/>
+                                            <BsFillBackspaceReverseFill className='text-2xl cursor-pointer' onClick={()=>{unsavepost(post._doc.PostId)}}/>
                                         </div>
                                         <h2 className="text-lg text-gray-900 font-medium title-font mb-2">{post._doc.Title}</h2>
                                         <p className="leading-relaxed text-base mb-4">{post._doc.Text}</p>
@@ -274,11 +270,11 @@ const Subgredit = () => {
 
 
                     </div>
-                     <button onClick={() => { navigate(`/subgreddit/createpost?${pageid}`) }} className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Create More</button>
+                     
                 </div>
             </section>
         </>
     )
 }
 
-export default Subgredit
+export default SavedPosts;

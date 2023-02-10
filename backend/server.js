@@ -113,11 +113,23 @@ const postcomment = new mongoose.Schema({
     Comment: String,
 })
 
+const bannedfromsubgreddit = new mongoose.Schema({
+    PageId: String,
+    Userbanned: String,
+})
+
+const savedposts = new mongoose.Schema({
+    PostId: String,
+    User: String,
+})
+
 const User = mongoose.model('User', userschema);
 const Subgreddit = mongoose.model('Subgreddit', subgredditschema);
 const Report = mongoose.model('Report', reportschema);
 const Post = mongoose.model('Post', postschema);
 const PostComment = mongoose.model('PostComment', postcomment);
+const BannedFromSubgreddit = mongoose.model('BannedFromSubgreddit', bannedfromsubgreddit);
+const SavedPosts = mongoose.model('SavedPosts', savedposts);
 
 app.get('/api/hello', (req, res) => {
     res.json({ message: 'Hello World!' });
@@ -316,28 +328,37 @@ app.post('/api/follow', async (req, res) => {
     let tempuser = await User.find({ username: user });
     let tempuser1 = await User.find({ username: whotofollow });
 
-    tempuser[0].Following.push({
-        firstname: tempuser1[0].firstname,
-        lastname: tempuser1[0].lastname,
-        fusername: tempuser1[0].username
-    })
-    tempuser[0].numfollowing = tempuser[0].numfollowing + 1;
+    if (tempuser[0].Following.filter((following) => { return following.fusername === whotofollow }).length > 0) {
+        res.status(400).json({ error: "You already Follow this User !! " });
+    }
 
-    tempuser1[0].Followers.push({
-        firstname: tempuser[0].firstname,
-        lastname: tempuser[0].lastname,
-        fusername: tempuser[0].username
-    })
-    tempuser1[0].numfollowers = tempuser1[0].numfollowers + 1;
+    else if (tempuser1[0].Followers.filter((follower) => { return follower.fusername === user }).length > 0) {
+        res.status(400).json({ error: "You already Follow this User !! " });
+    }
+    else {
+        tempuser[0].Following.push({
+            firstname: tempuser1[0].firstname,
+            lastname: tempuser1[0].lastname,
+            fusername: tempuser1[0].username
+        })
+        tempuser[0].numfollowing = tempuser[0].numfollowing + 1;
 
-    console.log(tempuser[0]);
+        tempuser1[0].Followers.push({
+            firstname: tempuser[0].firstname,
+            lastname: tempuser[0].lastname,
+            fusername: tempuser[0].username
+        })
+        tempuser1[0].numfollowers = tempuser1[0].numfollowers + 1;
 
-    await tempuser[0].save();
-    await tempuser1[0].save();
+        console.log(tempuser[0]);
 
-    let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
+        await tempuser[0].save();
+        await tempuser1[0].save();
 
-    res.status(200).json({ token: token });
+        let token = jwt.sign({ id: tempuser[0]._id, firstname: tempuser[0].firstname, lastname: tempuser[0].lastname, username: tempuser[0].username, email: tempuser[0].Email, contactno: tempuser[0].Contactno, age: tempuser[0].Age, numfollowers: tempuser[0].numfollowers, numfollowing: tempuser[0].numfollowing }, 'jwtsecret');
+
+        res.status(200).json({ token: token });
+    }
 })
 
 app.post('/api/createsubgreddit', async (req, res) => {
@@ -410,10 +431,10 @@ app.post('/api/fetchposts', async (req, res) => {
     let subgreddit = await Subgreddit.find({ PageId: data.pageid });
 
     let completeposts = [];
-    
+
     await Promise.all(
         posts.map(async (post) => {  // .map function IGNORES ASYNC
-            
+
             const promise = new Promise((resolve, reject) => {
                 return PostComment.find({ PostId: post.PostId }, (err, comments) => {
                     if (err) reject(err);
@@ -421,9 +442,9 @@ app.post('/api/fetchposts', async (req, res) => {
                 });
             });
             const comments = await promise;
-            completeposts.push({...post,comments:comments});
+            completeposts.push({ ...post, comments: comments });
             return post;
-    }));
+        }));
 
     let token = jwt.sign({ posts: completeposts, moderator: subgreddit[0].Moderator, Name: subgreddit[0].Name, Description: subgreddit[0].Description }, 'jwtsecret');
     res.status(200).json({ token: token });
@@ -510,16 +531,27 @@ app.post('/api/joinsubgreddit', async (req, res) => {
     let pagedata = await Subgreddit.find({ PageId: data.pageid });
     let user = await User.find({ username: data.username });
 
-    let pendingrequests = pagedata[0].PendingRequest;
-    pendingrequests.push({
-        pfirstname: user[0].firstname,
-        plastname: user[0].lastname,
-        pusername: user[0].username
-    });
+    // Check if he is banned from page or not
+    let bannedfollowers = await BannedFromSubgreddit.find({ PageId: data.pageid });
+    console.log(bannedfollowers);
 
-    pagedata[0].PendingRequest = pendingrequests;
-    await pagedata[0].save();
-    res.status(200).json({ message: "Request Sent" });
+    if (bannedfollowers.filter((follower) => follower.Userbanned === data.username).length > 0) {
+        // person is banned from following this page
+        res.status(400).json({ error: "You are banned from this page" })
+    }
+    else {
+
+        let pendingrequests = pagedata[0].PendingRequest;
+        pendingrequests.push({
+            pfirstname: user[0].firstname,
+            plastname: user[0].lastname,
+            pusername: user[0].username
+        });
+
+        pagedata[0].PendingRequest = pendingrequests;
+        await pagedata[0].save();
+        res.status(200).json({ message: "Request Sent" });
+    }
 })
 
 app.post('/api/leavepage', async (req, res) => {
@@ -533,6 +565,14 @@ app.post('/api/leavepage', async (req, res) => {
     pagedata[0].Followers = followers;
     pagedata.numfollowers = pagedata.numfollowers - 1;
     await pagedata[0].save();
+
+    // Ban person from ever joining again
+    let newbanned = new BannedFromSubgreddit({
+        PageId: data.pageid,
+        Userbanned: data.username,
+    })
+    console.log(newbanned);
+    await newbanned.save();
 
     res.status(200).json({ message: "Left Page" });
 })
@@ -557,16 +597,75 @@ app.post('/api/downvotepost', async (req, res) => {
 
 app.post('/api/commentpost', async (req, res) => {
     let data = req.body;
-    let postcomment  = new PostComment({
+    let postcomment = new PostComment({
         "PostId": data.postid,
         "Comment": data.comment,
-        "Commentedby":data.username
+        "Commentedby": data.username
     });
 
     await postcomment.save();
 
     res.status(200).json({ message: "Commented" });
 })
+
+app.post('/api/savepost', async (req, res) => {
+    let data = req.body;
+    let savedpost = new SavedPosts({
+        "PostId": data.postid,
+        "User": data.username,
+    });
+
+    await savedpost.save();
+
+    res.status(200).json({ message: "Saved" });
+})
+
+app.post('/api/unsavepost' , async(req,res)=>{
+    let data = req.body;
+    await SavedPosts.deleteOne({
+        "PostId": data.postid,
+        "User": data.username,
+    })
+
+    res.status(200).json({message:"Unsaved"});
+})
+
+app.post('/api/getsavedposts', async (req, res) => {
+    let data = req.body;
+    let savedposts = await SavedPosts.find({ User: data.username }); // it only contains postids
+
+
+    // GET POSTS WITH COMMENTS
+    let completeposts = [];
+    await Promise.all(
+        savedposts.map(async (post) => {  // .map function IGNORES ASYNC
+
+            const promise = new Promise((resolve, reject) => {
+                return PostComment.find({ PostId: post.PostId }, (err, comments) => {
+                    if (err) reject(err);
+                    resolve(comments);
+                });
+            });
+
+            const promise2 = new Promise((resolve, reject) => {
+                return Post.findOne({ PostId: post.PostId }, (err, comments) => {
+                    if (err) reject(err);
+                    resolve(comments);
+                });
+            });
+
+            const comments = await promise;
+            const postdata = await promise2;
+            completeposts.push({ _doc: postdata, comments: comments });
+            return post;
+        }));
+
+    console.log(completeposts);
+
+    let token = jwt.sign({ posts: completeposts }, 'jwtsecret');
+    res.status(200).json({ token: token });
+})
+
 
 app.listen(3001, () => {
     console.log('Server started on port 3001');

@@ -19,6 +19,7 @@ import WithAuth from './components/WithAuth';
 import Home from './components/Home'
 import Submembers from './components/Submembers';
 import Followrequests from './components/Followrequests';
+import SavedPosts from './components/SavedPosts';
 
 function App() {
  
@@ -41,6 +42,7 @@ function App() {
           <Route path='/subgreddit/createpost' element={<Createpost ></Createpost>} ></Route>
           <Route path='/subgreddit/submembers'  element={<Submembers></Submembers>} ></Route>
           <Route path='/subgreddit/subrequests'  element={<Followrequests></Followrequests>} ></Route>
+          <Route exact path='/savedposts'  element={<SavedPosts />} ></Route>
         </Routes>
         <Footer />
       </div>

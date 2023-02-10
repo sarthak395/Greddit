@@ -18,8 +18,8 @@ const Navbar = () => {
     linkto:'/profile',
     title:"Profile"
   },{
-    linkto:'/',
-    title:"Other Link"
+    linkto:'/savedposts',
+    title:"Saved Posts"
   },{
     linkto:'/',
     title:"Other Link"
