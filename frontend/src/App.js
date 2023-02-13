@@ -20,6 +20,7 @@ import Home from './components/Home'
 import Submembers from './components/Submembers';
 import Followrequests from './components/Followrequests';
 import SavedPosts from './components/SavedPosts';
+import Subgredditstats from './components/Subgredditstats';
 
 function App() {
  
@@ -43,6 +44,7 @@ function App() {
           <Route path='/subgreddit/submembers'  element={<Submembers></Submembers>} ></Route>
           <Route path='/subgreddit/subrequests'  element={<Followrequests></Followrequests>} ></Route>
           <Route exact path='/savedposts'  element={<SavedPosts />} ></Route>
+          <Route path='/subgreddit/stats'  element={<Subgredditstats />} ></Route>
         </Routes>
         <Footer />
       </div>

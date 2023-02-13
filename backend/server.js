@@ -63,6 +63,7 @@ const subgredditschema = new mongoose.Schema({
             mfirstname: String,
             mlastname: String,
             musername: String,
+            joiningdate: { type: Date },
             blocked: Boolean,
         }], sparse: true
     },
@@ -84,6 +85,13 @@ const subgredditschema = new mongoose.Schema({
     },
 
 }, { timestamps: true })
+
+
+const visitorschema = new mongoose.Schema({
+    PageId: String,
+    Count:Number,
+    Date: String,
+},{unique:true})
 
 const reportschema = new mongoose.Schema({
     ReportId: { type: String, unique: true },
@@ -130,6 +138,7 @@ const Post = mongoose.model('Post', postschema);
 const PostComment = mongoose.model('PostComment', postcomment);
 const BannedFromSubgreddit = mongoose.model('BannedFromSubgreddit', bannedfromsubgreddit);
 const SavedPosts = mongoose.model('SavedPosts', savedposts);
+const Visitor = mongoose.model('Visitor', visitorschema);
 
 app.get('/api/hello', (req, res) => {
     res.json({ message: 'Hello World!' });
@@ -430,6 +439,28 @@ app.post('/api/fetchposts', async (req, res) => {
     let posts = await Post.find({ PostedIn: data.pageid });
     let subgreddit = await Subgreddit.find({ PageId: data.pageid });
 
+    // PAGE WAS VISITED , SO VISITORS STAT ALSO
+    const currentDate = new Date();
+    subgreddit[0].numvisitors = subgreddit[0].numvisitors + 1;
+    await subgreddit[0].save();
+
+    let visitors = await Visitor.find({ PageId: data.pageid , Date: currentDate.toDateString() });
+    if (visitors.length === 0) {
+        let firstvisitor = new Visitor({
+            PageId: data.pageid,
+            Date: currentDate.toDateString(),
+            Count: 1
+        })
+        
+        await firstvisitor.save();
+    }
+    else{
+        visitors[0].Count = visitors[0].Count + 1;
+        await visitors[0].save();
+    }
+
+
+    // MAKING COMPLETE POSTS WITH COMMENTS
     let completeposts = [];
 
     await Promise.all(
@@ -485,6 +516,7 @@ app.post('/api/acceptjoiningreq', async (req, res) => {
         mfirstname: temp[0].pfirstname,
         mlastname: temp[0].plastname,
         musername: temp[0].pusername,
+        joiningdate:Date.now(),
         blocked: false
     });
 
@@ -620,14 +652,14 @@ app.post('/api/savepost', async (req, res) => {
     res.status(200).json({ message: "Saved" });
 })
 
-app.post('/api/unsavepost' , async(req,res)=>{
+app.post('/api/unsavepost', async (req, res) => {
     let data = req.body;
     await SavedPosts.deleteOne({
         "PostId": data.postid,
         "User": data.username,
     })
 
-    res.status(200).json({message:"Unsaved"});
+    res.status(200).json({ message: "Unsaved" });
 })
 
 app.post('/api/getsavedposts', async (req, res) => {
@@ -666,6 +698,50 @@ app.post('/api/getsavedposts', async (req, res) => {
     res.status(200).json({ token: token });
 })
 
+app.post('/api/getmemberstats', async (req, res) => {
+    let data = req.body; // pageid = data.pageid
+    
+    const subgreddit = await Subgreddit.find({ PageId: data.pageid });
+   
+    const followers = subgreddit[0].Followers;
+
+    // aggregate the followers array to get number of followers by day
+    let countByJoiningDate = {};
+    followers.map((follower) => {
+        if(follower.joiningdate === undefined) return;
+        let joiningDate = follower.joiningdate.toDateString();
+        if (!countByJoiningDate[joiningDate]) {
+            countByJoiningDate[joiningDate] = 0;
+        }
+        countByJoiningDate[joiningDate]++;
+    })
+
+    // get posts by date
+    const posts = await Post.find({PostedIn:data.pageid});
+    let postsbycreationdate = {};
+    posts.map((post) => {
+        // console.log(post.createdAt.toDateString());
+        let creationdate = post.createdAt.toDateString();
+        if (!postsbycreationdate[creationdate]) {
+            postsbycreationdate[creationdate] = 0;
+        }
+        postsbycreationdate[creationdate]++;
+    })
+
+    // get numvisitors by date
+    const visitors = await Visitor.find({Visited:data.pageid});
+    let visitorsbydate = {};
+    visitors.map((visitor) => {
+        let date = visitor.Date;
+        if (!visitorsbydate[date]) {
+            visitorsbydate[date] = visitor.Count;
+        }
+    })
+
+    console.log(visitorsbydate)
+
+    res.status(200).json({ countByJoiningDate: countByJoiningDate , postsbycreationdate: postsbycreationdate , visitorsbydate: visitorsbydate });
+});
 
 app.listen(3001, () => {
     console.log('Server started on port 3001');

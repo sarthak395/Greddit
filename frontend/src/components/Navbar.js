@@ -32,8 +32,8 @@ const Navbar = () => {
     linkto:`/subgreddit/subrequests${location.search}`,
     title:'Join requests'
   },{
-    linkto:'/',
-    title:'New Link'
+    linkto:`/subgreddit/stats${location.search}`,
+    title:'Stats'
   },{
     linkto:'/',
     title:'New Link'
