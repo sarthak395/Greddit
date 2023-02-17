@@ -23,6 +23,9 @@ const Subgredit = () => {
     const [pageid, setpageid] = useState(location.search.slice(1))
     const [posts, setposts] = useState([]);
     const [commentbox, setcommentbox] = useState([]);
+    const [showModal, setshowModal] = useState(false)
+    const [concern, setconcern] = useState();
+    const [postidtoreport, setpostidtoreport] = useState()
 
     useEffect(() => {
         const fetchdata = async () => {
@@ -114,6 +117,31 @@ const Subgredit = () => {
         }
     }
 
+    const report = async () => {
+    
+        let res = await fetch('http://localhost:3001/api/reportpage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body:
+                JSON.stringify({
+                    reportedby: user_username, // username of the person who reported
+                    whomreported: pageid, // pageid of the subgreddit page reported
+                    concern: concern ,
+                    postid: postidtoreport,
+                })// body data type must match "Content-Type" header
+        })
+        let resp = await res.json();
+        if (resp.error) {
+            toast.error(resp.error);
+        }
+        else {
+            toast.success("Reported Successfully");
+        }
+        setshowModal(false);
+    }
+
     // const togglecommentbox = (index) => {
     //     console.log(index)
     //     let temp = commentbox;
@@ -164,7 +192,7 @@ const Subgredit = () => {
                 'Content-Type': 'application/json',
             },
             body:
-                JSON.stringify({ postid: postid , username:user_username })// body data type must match "Content-Type" header
+                JSON.stringify({ postid: postid, username: user_username })// body data type must match "Content-Type" header
         })
         let resp = await res.json()
         if (resp.error) {
@@ -173,6 +201,10 @@ const Subgredit = () => {
         else {
             toast.success(resp.message);
         }
+    }
+
+    const handleconcern = (e) => {
+        setconcern(e.target.value);
     }
 
     return (
@@ -190,6 +222,53 @@ const Subgredit = () => {
                     draggable
                     pauseOnHover
                 />
+                {/* Modal Box */}
+                {showModal ? (
+                    <>
+                        <div
+                            className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+                        >
+                            <div className="relative w-auto my-6 mx-auto max-w-3xl">
+                                {/*content*/}
+                                <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                                    {/*header*/}
+                                    <div className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
+                                        <h3 className="text-3xl font-semibold">
+                                            Why Do You Want To Report This Post?
+                                        </h3>
+
+                                    </div>
+                                    {/*body*/}
+                                    <div className="relative p-6 flex-auto">
+                                        
+                                        <label for="concern" className="leading-7 text-lg text-gray-600">Write your Concern</label>
+                                        <input className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 mb-2' type='text' placeholder='Concern' onChange={handleconcern} />
+                                    </div>
+                                    {/*footer*/}
+                                    <div className="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b">
+                                        <button
+                                            className="text-red-500 background-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                            type="button"
+                                            onClick={() => setshowModal(false)}
+                                        >
+                                            Close
+                                        </button>
+                                        <button
+                                            className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                                            type="button"
+                                            onClick={report}
+                                        >
+                                            Report Page
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="opacity-25 fixed inset-0 z-40 bg-black"></div>
+                    </>
+                ) : null}
+
+                {/* After Modal Box */}
                 <div className="container px-5 py-24 mx-auto">
                     <div className="flex flex-wrap w-full mb-20 flex-col items-center text-center">
                         <h1 className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900">{Subname}</h1>
@@ -203,7 +282,7 @@ const Subgredit = () => {
                                 <div key={post._doc.PostId} className="xl:w-1/3 md:w-1/2 p-4">
                                     <div className="border border-gray-200 p-6 rounded-lg">
                                         <div className="w-10 h-10 inline-flex items-center justify-center rounded-full bg-indigo-100 text-indigo-500 mb-4">
-                                            <CiSaveUp1 className='text-2xl cursor-pointer' onClick={()=>{savepost(post._doc.PostId)}}/>
+                                            <CiSaveUp1 className='text-2xl cursor-pointer' onClick={() => { savepost(post._doc.PostId) }} />
                                         </div>
                                         <h2 className="text-lg text-gray-900 font-medium title-font mb-2">{post._doc.Title}</h2>
                                         <p className="leading-relaxed text-base mb-4">{post._doc.Text}</p>
@@ -261,6 +340,8 @@ const Subgredit = () => {
                                         <button onClick={() => { followmod(post._doc.Postedby) }} type="button" className="text-white bg-green-500 hover:bg-blue-800 focus:ring-4 w-2/3 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Follow</button>
 
 
+                                        <button onClick={() => { setpostidtoreport(post._doc.PostId);setshowModal(true); }} type="button" className="text-white bg-red-500 hover:bg-blue-800 focus:ring-4 w-2/3 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-1.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Report Page</button>
+
 
                                         <div className='flex justify-between'>
                                             <button onClick={() => upvote(post._doc.PostId)} ><IoMdThumbsUp className='text-4xl' /></button>
@@ -274,7 +355,7 @@ const Subgredit = () => {
 
 
                     </div>
-                     <button onClick={() => { navigate(`/subgreddit/createpost?${pageid}`) }} className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Create More</button>
+                    <button onClick={() => { navigate(`/subgreddit/createpost?${pageid}`) }} className="flex mx-auto mt-16 text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Create More</button>
                 </div>
             </section>
         </>

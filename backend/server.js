@@ -6,7 +6,8 @@ var jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require("uuid")
 const cors = require('cors');
 
-const { MoneyOff } = require('@material-ui/icons');
+
+// const { nanoid } = require('nanoid');
 const app = express();
 
 
@@ -89,9 +90,9 @@ const subgredditschema = new mongoose.Schema({
 
 const visitorschema = new mongoose.Schema({
     PageId: String,
-    Count:Number,
+    Count: Number,
     Date: String,
-},{unique:true})
+}, { unique: true })
 
 const reportschema = new mongoose.Schema({
     ReportId: { type: String, unique: true },
@@ -126,6 +127,11 @@ const bannedfromsubgreddit = new mongoose.Schema({
     Userbanned: String,
 })
 
+const blockedfromsubgreddit = new mongoose.Schema({
+    PageId: String,
+    Userblocked: String,
+})
+
 const savedposts = new mongoose.Schema({
     PostId: String,
     User: String,
@@ -137,6 +143,7 @@ const Report = mongoose.model('Report', reportschema);
 const Post = mongoose.model('Post', postschema);
 const PostComment = mongoose.model('PostComment', postcomment);
 const BannedFromSubgreddit = mongoose.model('BannedFromSubgreddit', bannedfromsubgreddit);
+const BlockedFromSubgreddit = mongoose.model('BlockedFromSubgreddit', blockedfromsubgreddit);
 const SavedPosts = mongoose.model('SavedPosts', savedposts);
 const Visitor = mongoose.model('Visitor', visitorschema);
 
@@ -444,17 +451,17 @@ app.post('/api/fetchposts', async (req, res) => {
     subgreddit[0].numvisitors = subgreddit[0].numvisitors + 1;
     await subgreddit[0].save();
 
-    let visitors = await Visitor.find({ PageId: data.pageid , Date: currentDate.toDateString() });
+    let visitors = await Visitor.find({ PageId: data.pageid, Date: currentDate.toDateString() });
     if (visitors.length === 0) {
         let firstvisitor = new Visitor({
             PageId: data.pageid,
             Date: currentDate.toDateString(),
             Count: 1
         })
-        
+
         await firstvisitor.save();
     }
-    else{
+    else {
         visitors[0].Count = visitors[0].Count + 1;
         await visitors[0].save();
     }
@@ -516,7 +523,7 @@ app.post('/api/acceptjoiningreq', async (req, res) => {
         mfirstname: temp[0].pfirstname,
         mlastname: temp[0].plastname,
         musername: temp[0].pusername,
-        joiningdate:Date.now(),
+        joiningdate: Date.now(),
         blocked: false
     });
 
@@ -565,11 +572,17 @@ app.post('/api/joinsubgreddit', async (req, res) => {
 
     // Check if he is banned from page or not
     let bannedfollowers = await BannedFromSubgreddit.find({ PageId: data.pageid });
-    console.log(bannedfollowers);
+
+    // check if he is blocked from page or not
+    let blockedfollowers = await BlockedFromSubgreddit.find({ PageId: data.pageid });
 
     if (bannedfollowers.filter((follower) => follower.Userbanned === data.username).length > 0) {
         // person is banned from following this page
         res.status(400).json({ error: "You are banned from this page" })
+    }
+    else if(blockedfollowers.filter((follower) => follower.Userblocked === data.username).length > 0)
+    {
+        res.status(400).json({ error: "You are blocked from this page for your report" })
     }
     else {
 
@@ -700,15 +713,15 @@ app.post('/api/getsavedposts', async (req, res) => {
 
 app.post('/api/getmemberstats', async (req, res) => {
     let data = req.body; // pageid = data.pageid
-    
+
     const subgreddit = await Subgreddit.find({ PageId: data.pageid });
-   
+
     const followers = subgreddit[0].Followers;
 
     // aggregate the followers array to get number of followers by day
     let countByJoiningDate = {};
     followers.map((follower) => {
-        if(follower.joiningdate === undefined) return;
+        if (follower.joiningdate === undefined) return;
         let joiningDate = follower.joiningdate.toDateString();
         if (!countByJoiningDate[joiningDate]) {
             countByJoiningDate[joiningDate] = 0;
@@ -717,7 +730,7 @@ app.post('/api/getmemberstats', async (req, res) => {
     })
 
     // get posts by date
-    const posts = await Post.find({PostedIn:data.pageid});
+    const posts = await Post.find({ PostedIn: data.pageid });
     let postsbycreationdate = {};
     posts.map((post) => {
         // console.log(post.createdAt.toDateString());
@@ -729,7 +742,7 @@ app.post('/api/getmemberstats', async (req, res) => {
     })
 
     // get numvisitors by date
-    const visitors = await Visitor.find({Visited:data.pageid});
+    const visitors = await Visitor.find({ Visited: data.pageid });
     let visitorsbydate = {};
     visitors.map((visitor) => {
         let date = visitor.Date;
@@ -740,7 +753,88 @@ app.post('/api/getmemberstats', async (req, res) => {
 
     console.log(visitorsbydate)
 
-    res.status(200).json({ countByJoiningDate: countByJoiningDate , postsbycreationdate: postsbycreationdate , visitorsbydate: visitorsbydate });
+    res.status(200).json({ countByJoiningDate: countByJoiningDate, postsbycreationdate: postsbycreationdate, visitorsbydate: visitorsbydate });
+});
+
+app.post('/api/reportpage', async (req, res) => {
+    let data = req.body;
+
+    const report = new Report({
+        ReportId: uuidv4(),
+        Reportedby: data.reportedby, // username of the person who reported
+        whomreported: data.whomreported, // pageid of the subgreddit page reported
+        concern: data.concern,
+        Postid: data.postid, // to get text of post
+        Status: null, // ignored / blocked / reported / notselected
+    });
+
+    await report.save();
+
+    res.status(200).json({ message: "Reported" });
+});
+
+app.post('/api/getreports', async (req, res) => {
+    let data  = req.body;
+    const reports = await Report.find({ whomreported: data.pageid });
+    
+    let completereports = [];
+    await Promise.all(
+        reports.map(async (report) => {  // .map function IGNORES ASYNC
+
+            const promise = new Promise((resolve, reject) => {
+                return Post.findOne({ PostId: report.Postid }, (err, post) => {
+                    if (err) reject(err);
+                    resolve(post);
+                });
+            });
+
+
+            const promise2 = new Promise((resolve, reject) => {
+                return Subgreddit.findOne({ PageId:report.whomreported }, (err, subgreddit) => {
+                    if (err) reject(err);
+                    resolve(subgreddit);
+                });
+            });
+
+            const post = await promise;
+            const subgreddit = await promise2;
+            
+            completereports.push({...report , posttext : post.Text , subgredditname : subgreddit.Name , subgredditmoderator : subgreddit.Moderator });
+            return report;
+        }));
+
+    let token = jwt.sign({ reports: completereports }, 'jwtsecret');
+    res.status(200).json({ token: token });
+});
+
+app.post('/api/ignorereport', async (req, res) => {
+    let data = req.body;
+    let report = await Report.findOne({ ReportId: data.reportid });
+    report.Status = "ignored";
+    await report.save();
+
+    res.status(200).json({ message: "Report Ignored" });
+});
+
+app.post('/api/blockreport', async (req, res) => {
+    let data = req.body;
+    let report = await Report.findOne({ ReportId: data.reportid });
+    report.Status = "blocked";
+    await report.save();
+
+    // remove user from followers
+    let subgreddit = await Subgreddit.findOne({ PageId: report.whomreported });
+    subgreddit.Followers = subgreddit.Followers.filter((follower) => follower.musername !== report.Reportedby);
+    await subgreddit.save();
+
+    // block user from subgreddit
+    let newblocked = new BlockedFromSubgreddit({
+        PageId: report.whomreported,
+        Userblocked: report.Reportedby,
+    })
+    await newblocked.save();
+    
+    res.status(200).json({ message: "User Blocked" });
 });
 
 app.listen(3001, () => {

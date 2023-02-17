@@ -35,8 +35,8 @@ const Navbar = () => {
     linkto:`/subgreddit/stats${location.search}`,
     title:'Stats'
   },{
-    linkto:'/',
-    title:'New Link'
+    linkto:`/subgreddit/reports${location.search}`,
+    title:'Reports'
   }]
 
   // const [path, setpath] = useState('')

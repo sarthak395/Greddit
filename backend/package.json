@@ -17,7 +17,7 @@
     "generate-unique-id": "^2.0.1",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^6.8.4",
-    "nanoid": "^4.0.0",
+    "nanoid": "^4.0.1",
     "nodemon": "^2.0.20",
     "uuid": "^9.0.0"
   }
