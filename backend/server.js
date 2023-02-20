@@ -102,8 +102,9 @@ const reportschema = new mongoose.Schema({
     Postid: String, // to get text of post
     Status: String, // ignored / blocked / reported / notselected
     createdAt: { type: Date, default: Date.now },
-    expire_at: { type: Date, default: Date.now, expires: 60 * 60 * 24 * 10 }, // expire after 10 days of non-activity , further do myDocument.expire_at = null to remove expiry
-}, { timestamps: true })
+    // expire_at: { type: Date, default: new Date(Date.now() + 60) }, // expire after 1 minute of non-activity , further do myDocument.expire_at = null to remove expiry
+})
+reportschema.index({ createdAt: 1 }, { expireAfterSeconds: 30 });
 
 const postschema = new mongoose.Schema({
     PostId: { type: String, unique: true },
@@ -811,6 +812,7 @@ app.post('/api/ignorereport', async (req, res) => {
     let data = req.body;
     let report = await Report.findOne({ ReportId: data.reportid });
     report.Status = "ignored";
+    report.createdAt = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)); // set to 1000 years from now
     await report.save();
 
     res.status(200).json({ message: "Report Ignored" });
@@ -820,22 +822,43 @@ app.post('/api/blockreport', async (req, res) => {
     let data = req.body;
     let report = await Report.findOne({ ReportId: data.reportid });
     report.Status = "blocked";
+    report.createdAt = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)); // set to 1000 years from now
     await report.save();
 
-    // remove user from followers
+    // FIND USER WHO POSTED
+    let post = await Post.findOne({ PostId: report.Postid });
+    let userwhoposted = post.Postedby; // username of the person who posted
+
+    // remove user WHO POSTED from followers
     let subgreddit = await Subgreddit.findOne({ PageId: report.whomreported });
-    subgreddit.Followers = subgreddit.Followers.filter((follower) => follower.musername !== report.Reportedby);
+    subgreddit.Followers = subgreddit.Followers.filter((follower) => follower.musername !== userwhoposted);
     await subgreddit.save();
 
     // block user from subgreddit
     let newblocked = new BlockedFromSubgreddit({
         PageId: report.whomreported,
-        Userblocked: report.Reportedby,
+        Userblocked: userwhoposted,
     })
     await newblocked.save();
     
     res.status(200).json({ message: "User Blocked" });
 });
+
+app.post('/api/deletepost' , async (req , res) => {
+    let data = req.body;
+
+    let report = await Report.findOne({ ReportId: data.reportid });
+    report.Status = "deleted";
+
+
+    // find the post to be deleted
+    await Post.deleteOne({ PostId: report.Postid });
+    
+    // delete the request also
+    await Report.deleteOne({ ReportId: data.reportid });
+
+    res.status(200).json({ message: "Post Deleted" });
+})
 
 app.listen(3001, () => {
     console.log('Server started on port 3001');

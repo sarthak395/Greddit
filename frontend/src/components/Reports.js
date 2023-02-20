@@ -80,12 +80,22 @@ const Reports = () => {
             toast.success(resp.message)
         }
     }
-    const deletepost = () => {
-        console.log("delete");
-    }
-
-    const startblock = (e, reportid, index) => {
-
+    const deletepost = async(reportid) => {
+        let res = await fetch('http://localhost:3001/api/deletepost', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body:
+                JSON.stringify({ reportid })// body data type must match "Content-Type" header
+        })
+        let resp = await res.json();
+        if (resp.error) {
+            toast.error(resp.error)
+        }
+        else {
+            toast.success(resp.message)
+        }
     }
 
 
@@ -173,16 +183,16 @@ const Reports = () => {
                                             <p class="leading-relaxed text-base">Status : {report._doc.Status ? report._doc.Status : "Not Yet Decided"}</p>
 
                                             {report.subgredditmoderator === user_username && <div class="inline-flex mt-5">
-                                                <button class="text-gray-800 font-bold py-2 px-4 rounded-l bg-red-500" disabled={report._doc.Status === "ignored"} style={{ backgroundColor: report._doc.Status === "ignored" ? "gray" : "red" }} onClick={deletepost}>
-                                                    Delete Post
+                                                <button class="text-gray-800 font-bold py-2 px-4 rounded-l bg-red-500 hover:bg-red-600" disabled={report._doc.Status} style={{ backgroundColor: report._doc.Status ? "gray" : "" }} onClick={() => { deletepost(report._doc.ReportId) }}>
+                                                {report._doc.Status === "Deleted" ? "Already Deleted Post" : "Delete Post"}
                                                 </button>
 
-                                                <button class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-2 px-4 rounded-r" onClick={() => { ignore(report._doc.ReportId) }}>
+                                                <button class="bg-green-300 hover:bg-green-400 text-gray-800 font-bold py-2 px-4 rounded-r" disabled={report._doc.Status} style={{ backgroundColor: report._doc.Status ? "gray" : "" }} onClick={() => { ignore(report._doc.ReportId) }}>
                                                     {report._doc.Status === "ignored" ? "Already Ignored" : "Ignore"}
                                                 </button>
 
-                                                <button class="bg-red-300 hover:bg-red-400 text-gray-800 font-bold py-2 px-4 rounded-r" style={{ backgroundColor: report._doc.Status === "ignored" ? "gray" : "yellow" }} disabled={report._doc.Status === "ignored"} onClick={(e) => { toggleblock(e, report._doc.ReportId, index) }}>
-                                                    Block User
+                                                <button class="bg-red-300 hover:bg-red-400 text-gray-800 font-bold py-2 px-4 rounded-r" disabled={report._doc.Status} style={{ backgroundColor: report._doc.Status ? "gray" : "" }} onClick={(e) => { toggleblock(e, report._doc.ReportId, index) }}>
+                                                {report._doc.Status === "blocked" ? "Already Blocked User" : "Block User"}
                                                 </button>
 
                                             </div>}
