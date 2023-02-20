@@ -560,7 +560,7 @@ app.post('/api/rejectjoiningreq', async (req, res) => {
 
 app.get('/api/getallsubgreddits', async (req, res) => {
     let subgreddits = await Subgreddit.find({});
-    console.log(subgreddits);
+    // console.log(subgreddits);
     let token = jwt.sign({ subgreddits }, 'jwtsecret');
 
     res.status(200).json({ token: token });
@@ -777,7 +777,7 @@ app.post('/api/reportpage', async (req, res) => {
 app.post('/api/getreports', async (req, res) => {
     let data  = req.body;
     const reports = await Report.find({ whomreported: data.pageid });
-    
+    console.log("reports", reports);
     let completereports = [];
     await Promise.all(
         reports.map(async (report) => {  // .map function IGNORES ASYNC
@@ -854,8 +854,8 @@ app.post('/api/deletepost' , async (req , res) => {
     // find the post to be deleted
     await Post.deleteOne({ PostId: report.Postid });
     
-    // delete the request also
-    await Report.deleteOne({ ReportId: data.reportid });
+    // delete ALL the REPORTS PERTAINING TO THAT POST also
+    await Report.deleteMany({ Postid: report.Postid });
 
     res.status(200).json({ message: "Post Deleted" });
 })
