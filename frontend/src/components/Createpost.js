@@ -40,6 +40,8 @@ const Createpost = () => {
       }
       else {
         toast.success("Created Post Successfully")
+        if(resp.containsbanned === true)
+          toast.error("Post contains banned words");
       }
     }
     

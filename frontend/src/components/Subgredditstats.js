@@ -9,6 +9,7 @@ const Subgredditstats = () => {
     const [memstats, setmemstats] = useState({});
     const [poststats, setpoststats] = useState({})
     const [visitorstats, setvisitorstats] = useState({})
+    const [reportstats, setreportstats] = useState({});
 
     useEffect(() => {
         const fetchdata = async () => {
@@ -30,6 +31,7 @@ const Subgredditstats = () => {
                 setmemstats(resp.countByJoiningDate);
                 setpoststats(resp.postsbycreationdate);
                 setvisitorstats(resp.visitorsbydate);
+                setreportstats({"Number of Reports":resp.reportstat.numreportedposts , "Number of Deleted Posts":resp.reportstat.numdeletedposts});
             }
         }
         fetchdata();
@@ -45,6 +47,9 @@ const Subgredditstats = () => {
 
     let visitorlabels = Object.keys(visitorstats);
     let visitordata = Object.values(visitorstats);
+
+    let reportlabels = Object.keys(reportstats);
+    let reportdata = Object.values(reportstats);
 
     let memchartData = {
         labels: memlabels,
@@ -91,12 +96,27 @@ const Subgredditstats = () => {
         ]
     };
 
+    let reportchartData = {
+        labels: reportlabels,
+        datasets: [
+            {
+                label: "Number of Reports and Deleted Posts",
+                backgroundColor: "rgba(75,192,192,0.4)",
+                borderColor: "rgba(75,192,192,1)",
+                borderWidth: 1,
+                hoverBackgroundColor: "rgba(75,192,192,0.6)",
+                hoverBorderColor: "rgba(75,192,192,1)",
+                data: reportdata
+            }
+        ]
+    };
+
     let options = {
         scales: {
             xAxes: [
                 {
                     type: "category",
-                    labels: [memlabels,postlabels,visitorlabels]
+                    labels: [memlabels,postlabels,visitorlabels,reportlabels]
                 }
             ],
             yAxes: [
@@ -138,6 +158,14 @@ const Subgredditstats = () => {
                     <h2 className="sm:text-3xl text-2xl font-medium title-font text-gray-900 mt-5 mb-10" >Number of Visitors per Day</h2>
 
                     <Bar className="w-2/3" data={visitorchartData} width={800} height={600} options={options} />
+                </div>
+            </div>
+
+            <div className="flex justify-center ">
+                <div className="reportchart">
+                    <h2 className="sm:text-3xl text-2xl font-medium title-font text-gray-900 mt-5 mb-10" >Number of Reports and Number of Deleted Posts</h2>
+
+                    <Bar className="w-2/3" data={reportchartData} options={options} />
                 </div>
             </div>
 
