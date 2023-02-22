@@ -3,6 +3,8 @@ import { useState } from 'react'
 import jwt from 'jwt-decode' // import dependency
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import WithAuth from './WithAuth';
+
 
 const Createsubgredit = () => {
 
@@ -98,4 +100,4 @@ const Createsubgredit = () => {
     )
 }
 
-export default Createsubgredit
+export default WithAuth(Createsubgredit);

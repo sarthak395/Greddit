@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import jwt from 'jwt-decode' // import dependency
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import WithAuth from './WithAuth';
 
 const Reports = () => {
 
@@ -213,4 +214,4 @@ const Reports = () => {
     )
 }
 
-export default Reports
+export default WithAuth(Reports);

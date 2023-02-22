@@ -4,6 +4,7 @@ import jwt from 'jwt-decode' // import dependency
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useLocation } from 'react-router-dom';
+import WithAuth from './WithAuth';
 
 const Createpost = () => {
 
@@ -89,4 +90,4 @@ const Createpost = () => {
     )
 }
 
-export default Createpost
+export default WithAuth(Createpost);

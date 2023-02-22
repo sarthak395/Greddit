@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useEffect, useState } from 'react';
 import { LineStyle } from '@material-ui/icons';
+import WithAuth from './WithAuth';
 
 const Manysubgreddits = () => {
 
@@ -34,7 +35,30 @@ const Manysubgreddits = () => {
             }
         }
         fetchdata()
-    }, [])
+    }, [mysubgreddits])
+
+    const deletesubgreddit = async (pageid) => {
+        // let usertoken = localStorage.getItem("token");
+        // let userdata = jwt(usertoken);
+
+        let res = await fetch('http://localhost:3001/api/deletesubgreddit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body:
+                JSON.stringify({ pageid: pageid })// body data type must match "Content-Type" header
+        })
+        let resp = await res.json()
+        if (resp.error) {
+            toast.error(resp.error)
+        }
+        else {
+            setTimeout(() => {
+                toast.success("Subgreddit Deleted Successfully")
+            },2000);
+        }
+    }
 
     // console.log(mysubgreddits)
     return (
@@ -68,6 +92,9 @@ const Manysubgreddits = () => {
                                             <path d="M12 5l7 7-7 7"></path>
                                         </svg>
                                     </Link>
+
+                                    <button onClick={() => deletesubgreddit(subgreddit.PageId)} className="flex mx-auto mt-16 text-white bg-red-500 border-0 py-2 px-8 w-1/3 focus:outline-none hover:bg-red-600 rounded text-lg">Delete</button>
+
                                     <div className="text-center mt-2 leading-none flex justify-center absolute bottom-0 left-0 w-full py-4">
                                         <span className="text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200">
                                             <svg className="w-4 h-4 mr-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -96,4 +123,4 @@ const Manysubgreddits = () => {
     )
 }
 
-export default Manysubgreddits
+export default WithAuth(Manysubgreddits);

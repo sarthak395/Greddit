@@ -8,6 +8,8 @@ import { IoMdThumbsUp, IoMdThumbsDown, IoIosArrowDropdown } from "react-icons/io
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { CiSaveUp1 } from "react-icons/ci";
+import WithAuth from './WithAuth';
+
 
 const Subgredit = () => {
 
@@ -222,6 +224,7 @@ const Subgredit = () => {
                     draggable
                     pauseOnHover
                 />
+                <img src='./randompic.jpeg'></img>
                 {/* Modal Box */}
                 {showModal ? (
                     <>
@@ -362,4 +365,4 @@ const Subgredit = () => {
     )
 }
 
-export default Subgredit
+export default WithAuth(Subgredit);

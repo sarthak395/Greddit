@@ -2,6 +2,7 @@ import React from 'react'
 import jwt from 'jwt-decode' // import dependency
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import WithAuth from './WithAuth';
 
 const Followrequests = () => {
 
@@ -103,4 +104,4 @@ const Followrequests = () => {
   )
 }
 
-export default Followrequests
+export default WithAuth(Followrequests);

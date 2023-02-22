@@ -2,6 +2,7 @@ import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react';
 import jwt from 'jwt-decode' // import dependency
+import WithAuth from './WithAuth';
 
 const Otherprofile = () => {
 
@@ -135,4 +136,4 @@ const Otherprofile = () => {
     )
 }
 
-export default Otherprofile
+export default WithAuth(Otherprofile);

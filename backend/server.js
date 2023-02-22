@@ -164,6 +164,16 @@ app.post('/api/signup', async (req, res) => {
     var salt = await bcrypt.genSaltSync(10);
     var encryptedpassword = await bcrypt.hashSync(password, salt);
 
+    if (req.body.firstname == "" || req.body.lastname == "" || req.body.username == "" || req.body.email == "" || req.body.contactno == "" || req.body.age == "" || req.body.password == "") {
+        res.status(400).json({ error: "Please fill all the fields" });
+        return;
+    }
+
+    var phoneno = /^[6789]\d{9}$/;
+    if (!req.body.contactno.match(phoneno)) {
+        res.status(400).json({ error: "Please Enter Valid Phone Number" });
+        return;
+    }
     // var truth = bcrypt.compareSync(password, hash); // To Check Password
     data = {
         "firstname": req.body.firstname,
@@ -211,7 +221,7 @@ app.post('/api/updatedetails', async (req, res) => {
 
     const tempuser = await User.find({ _id: req.body.newdata.id })
     // console.log(tempuser, req.body.password)
-    var truth = await bcrypt.compareSync(req.body.password, tempuser[0].Password);
+    var truth = bcrypt.compareSync(req.body.password, tempuser[0].Password);
 
     if (!truth) {
         res.status(400).json({ success: false, error: "Incorrect Password" })
@@ -420,8 +430,8 @@ app.post("/api/getmysubgreddits", async (req, res) => {
 
 app.post("/api/createpost", async (req, res) => {
     let data = req.body;
-   
-    
+
+
 
     let pagedata = await Subgreddit.find({ PageId: data.pageid });
     pagedata[0].numposts = pagedata[0].numposts + 1;
@@ -434,7 +444,7 @@ app.post("/api/createpost", async (req, res) => {
     let containsbanned = false;
     for (let i = 0; i < bannedkeywords.length; i++) {
         let regex = new RegExp(bannedkeywords[i].trim(), 'gi');
-        if(text.match(regex))
+        if (text.match(regex))
             containsbanned = true;
         text = text.replace(regex, '****');
     }
@@ -454,7 +464,7 @@ app.post("/api/createpost", async (req, res) => {
     await post.save();
 
     let token = jwt.sign({ post }, 'jwtsecret');
-    res.status(200).json({ token: token , containsbanned : containsbanned });
+    res.status(200).json({ token: token, containsbanned: containsbanned });
 })
 
 app.post('/api/fetchposts', async (req, res) => {
@@ -508,8 +518,16 @@ app.post('/api/fetchsubmembers', async (req, res) => {
     let data = req.body;
     console.log(data)
     let subdata = await Subgreddit.find({ PageId: data.pageid });
+    let blockedfollowers = await BlockedFromSubgreddit.find({ PageId: data.pageid })
 
     let followers = subdata[0].Followers;
+    followers.forEach((follower) => {
+        blockedfollowers.forEach((blocked) => {
+            if (follower.musername === blocked.Userblocked) {
+                follower.blocked = true;
+            }
+        })
+    })
 
     let token = jwt.sign({ followers }, 'jwtsecret');
     res.status(200).json({ token: token });
@@ -596,8 +614,7 @@ app.post('/api/joinsubgreddit', async (req, res) => {
         // person is banned from following this page
         res.status(400).json({ error: "You are banned from this page" })
     }
-    else if(blockedfollowers.filter((follower) => follower.Userblocked === data.username).length > 0)
-    {
+    else if (blockedfollowers.filter((follower) => follower.Userblocked === data.username).length > 0) {
         res.status(400).json({ error: "You are blocked from this page for your report" })
     }
     else {
@@ -768,9 +785,9 @@ app.post('/api/getmemberstats', async (req, res) => {
     })
 
     // get numreports vs numdeleted posts
-    let reportstat = {numreportedposts: subgreddit[0].numreportedposts, numdeletedposts: subgreddit[0].numdeletedposts};
+    let reportstat = { numreportedposts: subgreddit[0].numreportedposts, numdeletedposts: subgreddit[0].numdeletedposts };
 
-    res.status(200).json({ countByJoiningDate: countByJoiningDate, postsbycreationdate: postsbycreationdate, visitorsbydate: visitorsbydate , reportstat: reportstat});
+    res.status(200).json({ countByJoiningDate: countByJoiningDate, postsbycreationdate: postsbycreationdate, visitorsbydate: visitorsbydate, reportstat: reportstat });
 });
 
 app.post('/api/reportpage', async (req, res) => {
@@ -795,7 +812,7 @@ app.post('/api/reportpage', async (req, res) => {
 });
 
 app.post('/api/getreports', async (req, res) => {
-    let data  = req.body;
+    let data = req.body;
     const reports = await Report.find({ whomreported: data.pageid });
     console.log("reports", reports);
     let completereports = [];
@@ -811,7 +828,7 @@ app.post('/api/getreports', async (req, res) => {
 
 
             const promise2 = new Promise((resolve, reject) => {
-                return Subgreddit.findOne({ PageId:report.whomreported }, (err, subgreddit) => {
+                return Subgreddit.findOne({ PageId: report.whomreported }, (err, subgreddit) => {
                     if (err) reject(err);
                     resolve(subgreddit);
                 });
@@ -819,8 +836,8 @@ app.post('/api/getreports', async (req, res) => {
 
             const post = await promise;
             const subgreddit = await promise2;
-            
-            completereports.push({...report , posttext : post.Text , subgredditname : subgreddit.Name , subgredditmoderator : subgreddit.Moderator });
+
+            completereports.push({ ...report, posttext: post.Text, subgredditname: subgreddit.Name, subgredditmoderator: subgreddit.Moderator });
             return report;
         }));
 
@@ -833,6 +850,7 @@ app.post('/api/ignorereport', async (req, res) => {
     let report = await Report.findOne({ ReportId: data.reportid });
     report.Status = "ignored";
     report.createdAt = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)); // set to 1 year from now
+
     await report.save();
 
     res.status(200).json({ message: "Report Ignored" });
@@ -860,11 +878,11 @@ app.post('/api/blockreport', async (req, res) => {
         Userblocked: userwhoposted,
     })
     await newblocked.save();
-    
+
     res.status(200).json({ message: "User Blocked" });
 });
 
-app.post('/api/deletepost' , async (req , res) => {
+app.post('/api/deletepost', async (req, res) => {
     let data = req.body;
 
     let report = await Report.findOne({ ReportId: data.reportid });
@@ -873,7 +891,7 @@ app.post('/api/deletepost' , async (req , res) => {
 
     // find the post to be deleted
     await Post.deleteOne({ PostId: report.Postid });
-    
+
     // delete ALL the REPORTS PERTAINING TO THAT POST also
     await Report.deleteMany({ Postid: report.Postid });
 
@@ -884,6 +902,28 @@ app.post('/api/deletepost' , async (req , res) => {
 
     res.status(200).json({ message: "Post Deleted" });
 })
+
+app.post('/api/deletesubgreddit', async (req, res) => {
+    let data = req.body; // pageid of the subgreddit to be deleted
+
+    // delete all posts
+    await Post.deleteMany({ PostedIn: data.pageid });
+
+    // delete all reports
+    await Report.deleteMany({ whomreported: data.pageid });
+
+    // delete all visitors
+    await Visitor.deleteMany({ Visited: data.pageid });
+
+    // delete all banned users
+    await BannedFromSubgreddit.deleteMany({ PageId: data.pageid });
+
+    // delete all blocked users
+    await BlockedFromSubgreddit.deleteMany({ PageId: data.pageid });
+
+    // delete the whole subgreddit
+    await Subgreddit.deleteMany({ PageId: data.pageid });
+});
 
 app.listen(3001, () => {
     console.log('Server started on port 3001');

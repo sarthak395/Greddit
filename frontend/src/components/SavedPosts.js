@@ -8,6 +8,7 @@ import { IoMdThumbsUp, IoMdThumbsDown, IoIosArrowDropdown } from "react-icons/io
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BsFillBackspaceReverseFill } from "react-icons/bs";
+import WithAuth from './WithAuth';
 
 const SavedPosts = () => {
 
@@ -277,4 +278,4 @@ const SavedPosts = () => {
     )
 }
 
-export default SavedPosts;
+export default WithAuth(SavedPosts);

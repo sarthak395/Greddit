@@ -1,8 +1,10 @@
 import React from 'react'
 import { useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Signup = () => {
-  
+
 
   const [firstname, setfirstname] = useState("");
   const [lastname, setlastname] = useState("");
@@ -32,7 +34,7 @@ const Signup = () => {
       setconfirmpassword(e.target.value);
   }
 
-  const reset =()=>{
+  const reset = () => {
     setfirstname("")
     setlastname("")
     setusername("")
@@ -43,13 +45,25 @@ const Signup = () => {
   }
 
   const submit = async () => {
-    
+
 
     if (password === confirmpassword) {
 
 
-      const datatosend = {firstname ,lastname,username, age,contactno,email, password };
+      const datatosend = { firstname, lastname, username, age, contactno, email, password };
+
+      if (firstname === "" || lastname === "" || username === "" || age === "" || contactno === "" || email === "" || password === "" || confirmpassword === "") {
+        toast.error("Please fill all the fields")
+        return;
+      }
+
+      var phoneno = /^[6789]\d{9}$/;
+      if (!contactno.match(phoneno)) {
+        toast.error("Please enter a valid phone number");
+        return;
+      }
       
+
       fetch('http://localhost:3001/api/signup', {
         method: 'POST',
         headers: {
@@ -58,13 +72,27 @@ const Signup = () => {
         body:
           JSON.stringify(datatosend)// body data type must match "Content-Type" header
       }).then((response) => {
-        console.log(response)
+        if (response.error)
+          toast.error(response.error)
+        else
+          toast.success("You are Successfully Signed Up")
         reset()
       })
     }
   }
   return (
     <div className="bg-grey-lighter min-h-screen flex flex-col">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="container max-w-sm mx-auto flex-1 flex flex-col items-center justify-center px-2">
         <div className="bg-white px-6 py-8 rounded shadow-md text-black w-full">
           <h1 className="mb-8 text-3xl text-center">Sign up</h1>

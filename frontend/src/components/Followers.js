@@ -5,6 +5,7 @@ import jwt from 'jwt-decode' // import dependency
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Button } from '@material-ui/core';
+import WithAuth from './WithAuth';
 
 const Followers = () => {
 
@@ -98,4 +99,4 @@ const Followers = () => {
     )
 }
 
-export default Followers
+export default WithAuth(Followers);

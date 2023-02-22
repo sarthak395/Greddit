@@ -5,7 +5,7 @@ import { Location, useLocation } from 'react-router-dom'
 
 const Auth = () => {
     let location = useLocation()
-    
+    console.log(location.search)
     if (location.search === "?mode=signup")
         return <Signup />
 

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import jwt from 'jwt-decode' // import dependency
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import WithAuth from './WithAuth';
 
 const Following = () => {
 
@@ -100,4 +101,4 @@ const Following = () => {
     )
 }
 
-export default Following
+export default WithAuth(Following);
