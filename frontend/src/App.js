@@ -22,11 +22,6 @@ import Followrequests from './components/Followrequests';
 import SavedPosts from './components/SavedPosts';
 import Subgredditstats from './components/Subgredditstats';
 import Reports from './components/Reports';
-import Chat from './components/Chat';
-import { ChatEngine } from 'react-chat-engine';
-
-
-
 
 
 function App() {
@@ -54,17 +49,6 @@ function App() {
           <Route exact path='/savedposts' element={<SavedPosts />} ></Route>
           <Route path='/subgreddit/stats' element={<Subgredditstats />} ></Route>
           <Route path='/subgreddit/reports' element={<Reports />} ></Route>
-          <Route exact path='/chat' element={
-            <ChatEngine
-              userName='admin'//Put your userName instead
-              userSecret={process.env.CHAT_APP_USER_SECRET}
-              projectID={process.env.CHAT_APP_PROJECT_ID}
-              height='100vh'
-              renderChatFeed={(creds) => { return (<div>My new chat form</div>) }}
-            />
-          }>
-
-          </Route>
         </Routes>
         <Footer />
       </div>

@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import jwt from 'jwt-decode' // import dependency
 import Fuse from 'fuse.js';
 import { Link } from 'react-router-dom';
-import { Sort } from '@material-ui/icons';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import WithAuth from './WithAuth';

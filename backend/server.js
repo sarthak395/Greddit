@@ -157,7 +157,6 @@ app.get('/api/signup', (req, res) => {
 });
 
 app.post('/api/signup', async (req, res) => {
-    console.log(req.body)
     var password = req.body.password;
 
     // encrypt password
@@ -196,7 +195,7 @@ app.get('/api/login', (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-    console.log(req.body)
+
     var password = req.body.password;
     var username = req.body.username
 
@@ -206,7 +205,7 @@ app.post('/api/login', async (req, res) => {
     else {
         // console.log(tempuser[0])
         var truth = await bcrypt.compareSync(password, tempuser[0].Password); // To Check Password
-        console.log(tempuser[0])
+        // console.log(tempuser[0])
         if (!truth)
             res.status(400).json({ success: false, error: "Incorrect Password" })
         else {
@@ -274,7 +273,7 @@ app.post("/api/removefollower", async (req, res) => {
     let followee = req.body.followee;
     let follower = req.body.follower;
 
-    console.log(followee, follower)
+    // console.log(followee, follower)
 
     let tempuser = await User.find({ username: followee })
 
@@ -348,7 +347,7 @@ app.post('/api/fetchprofile', async (req, res) => {
 })
 
 app.post('/api/follow', async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     let user = req.body.user;
     let whotofollow = req.body.whotofollow;
 
@@ -377,7 +376,7 @@ app.post('/api/follow', async (req, res) => {
         })
         tempuser1[0].numfollowers = tempuser1[0].numfollowers + 1;
 
-        console.log(tempuser[0]);
+        // console.log(tempuser[0]);
 
         await tempuser[0].save();
         await tempuser1[0].save();
@@ -416,7 +415,7 @@ app.post('/api/createsubgreddit', async (req, res) => {
     const page = new Subgreddit(pagedata);
     await page.save();
 
-    console.log(page)
+    // console.log(page)
     let token = jwt.sign({ page }, 'jwtsecret');
     res.status(200).json({ token: token });
 })
@@ -516,7 +515,7 @@ app.post('/api/fetchposts', async (req, res) => {
 
 app.post('/api/fetchsubmembers', async (req, res) => {
     let data = req.body;
-    console.log(data)
+    // console.log(data)
     let subdata = await Subgreddit.find({ PageId: data.pageid });
     let blockedfollowers = await BlockedFromSubgreddit.find({ PageId: data.pageid })
 
@@ -649,7 +648,7 @@ app.post('/api/leavepage', async (req, res) => {
         PageId: data.pageid,
         Userbanned: data.username,
     })
-    console.log(newbanned);
+    // console.log(newbanned);
     await newbanned.save();
 
     res.status(200).json({ message: "Left Page" });
@@ -738,7 +737,7 @@ app.post('/api/getsavedposts', async (req, res) => {
             return post;
         }));
 
-    console.log(completeposts);
+    // console.log(completeposts);
 
     let token = jwt.sign({ posts: completeposts }, 'jwtsecret');
     res.status(200).json({ token: token });
@@ -814,7 +813,7 @@ app.post('/api/reportpage', async (req, res) => {
 app.post('/api/getreports', async (req, res) => {
     let data = req.body;
     const reports = await Report.find({ whomreported: data.pageid });
-    console.log("reports", reports);
+    // console.log("reports", reports);
     let completereports = [];
     await Promise.all(
         reports.map(async (report) => {  // .map function IGNORES ASYNC

@@ -4,7 +4,6 @@ import jwt from 'jwt-decode' // import dependency
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useEffect, useState } from 'react';
-import { LineStyle } from '@material-ui/icons';
 import WithAuth from './WithAuth';
 
 const Manysubgreddits = () => {

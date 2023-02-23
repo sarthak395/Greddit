@@ -4,7 +4,6 @@ import {Link, Navigate} from 'react-router-dom'
 import jwt from 'jwt-decode' // import dependency
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Button } from '@material-ui/core';
 import WithAuth from './WithAuth';
 
 const Followers = () => {

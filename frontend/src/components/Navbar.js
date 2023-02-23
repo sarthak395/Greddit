@@ -7,10 +7,12 @@ import Signup from './Signup';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import WithAuth from './WithAuth';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
 
-  let location = useLocation()
+  let location = useLocation();
+  let navigate = useNavigate();
 
   let defLinks = [{
     linkto:'/mysubgreddits',
@@ -48,7 +50,7 @@ const Navbar = () => {
     localStorage.removeItem('token')
     setuser({ value: null })
     toast.success("You are Successfully logged Out")
-
+    navigate('/auth?mode=login')
   }
 
   
