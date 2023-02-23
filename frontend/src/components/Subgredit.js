@@ -28,6 +28,7 @@ const Subgredit = () => {
     const [showModal, setshowModal] = useState(false)
     const [concern, setconcern] = useState();
     const [postidtoreport, setpostidtoreport] = useState()
+    const [pagemod, setpagemod] = useState();
 
     useEffect(() => {
         const fetchdata = async () => {
@@ -57,6 +58,7 @@ const Subgredit = () => {
                 setposts(data.posts);
                 setSubname(data.Name);
                 setSubdesc(data.Description);
+                setpagemod(data.moderator);
             }
         }
         fetchdata();
@@ -275,12 +277,13 @@ const Subgredit = () => {
                 <div className="container px-5 py-24 mx-auto">
                     <div className="flex flex-wrap w-full mb-20 flex-col items-center text-center">
                         <h1 className="sm:text-3xl text-2xl font-medium title-font mb-2 text-gray-900">{Subname}</h1>
+                        
                         <p className='leading-relaxed text-base'>{Subdesc}</p>
                     </div>
                     <div className="flex flex-wrap -m-4">
 
                         {posts.map((post, index) => {
-
+                            console.log(post)
                             return (
                                 <div key={post._doc.PostId} className="xl:w-1/3 md:w-1/2 p-4">
                                     <div className="border border-gray-200 p-6 rounded-lg">
@@ -288,6 +291,7 @@ const Subgredit = () => {
                                             <CiSaveUp1 className='text-2xl cursor-pointer' onClick={() => { savepost(post._doc.PostId) }} />
                                         </div>
                                         <h2 className="text-lg text-gray-900 font-medium title-font mb-2">{post._doc.Title}</h2>
+                                        <h3 className='ttext-lg text-gray-900 font-medium title-font mb-2'>Posted By: {post.userblocked && user_username!=pagemod ? "Blocked User" : post._doc.Postedby}</h3>
                                         <p className="leading-relaxed text-base mb-4">{post._doc.Text}</p>
 
                                         <div className="text-center mt-2 leading-none flex justify-center bottom-0 left-0 w-full py-4">

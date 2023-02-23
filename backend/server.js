@@ -470,6 +470,7 @@ app.post('/api/fetchposts', async (req, res) => {
     let data = req.body;
     let posts = await Post.find({ PostedIn: data.pageid });
     let subgreddit = await Subgreddit.find({ PageId: data.pageid });
+    
 
     // PAGE WAS VISITED , SO VISITORS STAT ALSO
     const currentDate = new Date();
@@ -492,7 +493,7 @@ app.post('/api/fetchposts', async (req, res) => {
     }
 
 
-    // MAKING COMPLETE POSTS WITH COMMENTS
+    // MAKING COMPLETE POSTS WITH COMMENTS AND Flagging Blocked Users
     let completeposts = [];
 
     await Promise.all(
@@ -504,11 +505,22 @@ app.post('/api/fetchposts', async (req, res) => {
                     resolve(comments);
                 });
             });
+            
+            const promise2 = new Promise((resolve, reject) => {
+                return BlockedFromSubgreddit.find({ PageId: data.pageid , Userblocked:post.Postedby }, (err, blocked) => {
+                    if (err) reject(err);
+                    resolve(blocked);
+                });
+            })
+
             const comments = await promise;
-            completeposts.push({ ...post, comments: comments });
+            const blocked = await promise2;
+           
+            completeposts.push({ ...post,userblocked : blocked.length>0 ? true :false ,comments: comments });
             return post;
         }));
 
+        
     let token = jwt.sign({ posts: completeposts, moderator: subgreddit[0].Moderator, Name: subgreddit[0].Name, Description: subgreddit[0].Description }, 'jwtsecret');
     res.status(200).json({ token: token });
 })
@@ -537,7 +549,7 @@ app.post('/api/fetchjoiningreq', async (req, res) => {
     let pagedata = await Subgreddit.find({ PageId: data.pageid });
 
     let requests = pagedata[0].PendingRequest;
-    let token = jwt.sign({ requests }, 'jwtsecret');
+    let token = jwt.sign({ requests:requests , pagemod:pagedata.Moderator }, 'jwtsecret');
     res.status(200).json({ token: token });
 })
 
