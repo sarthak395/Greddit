@@ -1,5 +1,6 @@
 import React from 'react'
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -14,8 +15,27 @@ const Signup = () => {
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
   const [confirmpassword, setconfirmpassword] = useState("");
+  const [submitdisabled, setsubmitdisabled] = useState(true);
+  const [formdata, setformdata] = useState({})
+
+  const inputvalidation = (formdata) =>{
+    if (formdata.firstname === "" || formdata.lastname === "" || formdata.username === "" || formdata.age === "" || formdata.contactno === "" || formdata.email === "" || formdata.password === "" || formdata.confirm_password === "") {
+      setsubmitdisabled(true)
+      return;
+    }
+
+    var phoneno = /^[6789]\d{9}$/;
+    if (!formdata.contactno.match(phoneno)) {
+      setsubmitdisabled(true)
+      return;
+    }
+
+    setsubmitdisabled(false);
+  }
 
   const change = (e) => {
+    let newformdata = {...formdata , [e.target.name]:e.target.value};
+    
     if (e.target.name === "firstname")
       setfirstname(e.target.value);
     if (e.target.name === "lastname")
@@ -32,6 +52,8 @@ const Signup = () => {
       setpassword(e.target.value);
     if (e.target.name === "confirm_password")
       setconfirmpassword(e.target.value);
+    inputvalidation(newformdata);
+    setformdata(newformdata);
   }
 
   const reset = () => {
@@ -42,6 +64,8 @@ const Signup = () => {
     setpassword("")
     setage()
     setcontactno("")
+    setconfirmpassword("");
+    setformdata({});
   }
 
   const submit = async () => {
@@ -144,6 +168,8 @@ const Signup = () => {
             placeholder="Confirm Password" onChange={change} />
 
           <button
+            disabled={submitdisabled}
+            style={{ backgroundColor: submitdisabled ? "gray" : "" }}
             onClick={submit}
             type="submit"
             className="w-full text-center py-3 rounded bg-green-400 text-black hover:bg-green-dark focus:outline-none my-1"
@@ -162,9 +188,9 @@ const Signup = () => {
 
         <div className="text-grey-dark mt-6">
           Already have an account?
-          <a className="no-underline border-b border-blue text-blue-" href="#">
+          <Link className="no-underline border-b border-blue text-blue-500" to={"/auth?mode=login"}>
             Log in
-          </a>.
+          </Link>.
         </div>
       </div>
     </div>

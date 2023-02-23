@@ -9,6 +9,8 @@ import WithAuth from './WithAuth';
 const Createpost = () => {
 
     const [formdata, setformdata] = useState({})
+    
+
     let location = useLocation();
 
     const updateData = e => {

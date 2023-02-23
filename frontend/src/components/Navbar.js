@@ -8,6 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import WithAuth from './WithAuth';
 import { useNavigate } from 'react-router-dom';
+import {AiOutlineLink} from 'react-icons/ai'
 
 const Navbar = () => {
 
@@ -25,7 +26,7 @@ const Navbar = () => {
     title:"Saved Posts"
   },{
     linkto:'/',
-    title:"Other Link"
+    title:"Subgreddits Page"
   }]
 
   let newlinks = [{
@@ -96,7 +97,10 @@ const Navbar = () => {
         <nav className="md:ml-auto md:mr-auto flex flex-wrap items-center text-base justify-center">
           {links && links.map((link , index) => {
             return (
-              <Link to={link.linkto} key={index} className="mr-5 hover:text-blue-600">{link.title}</Link>
+              <Link to={link.linkto} key={index} className="mr-5 hover:text-blue-600">
+                <AiOutlineLink className='text-4xl' />
+                {link.title}
+                </Link>
             )
           })}
           {!links && <>

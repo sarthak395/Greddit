@@ -866,8 +866,13 @@ app.post('/api/blockreport', async (req, res) => {
     let post = await Post.findOne({ PostId: report.Postid });
     let userwhoposted = post.Postedby; // username of the person who posted
 
+    
     // remove user WHO POSTED from followers
     let subgreddit = await Subgreddit.findOne({ PageId: report.whomreported });
+
+    if(userwhoposted === subgreddit.Moderator) {
+        res.status(400).json({error:"You Can't Block the Moderator"})
+    }
     subgreddit.Followers = subgreddit.Followers.filter((follower) => follower.musername !== userwhoposted);
     await subgreddit.save();
 
