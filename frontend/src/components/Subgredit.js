@@ -9,6 +9,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { CiSaveUp1 } from "react-icons/ci";
 import WithAuth from './WithAuth';
+import useKeyboardShortcut from 'use-keyboard-shortcut';
 
 
 const Subgredit = () => {
@@ -29,6 +30,45 @@ const Subgredit = () => {
     const [concern, setconcern] = useState();
     const [postidtoreport, setpostidtoreport] = useState()
     const [pagemod, setpagemod] = useState();
+
+
+    useKeyboardShortcut(
+        ["U"],
+        shortcutKeys => navigate(`/subgreddit/submembers${location.search}`),
+        { 
+          overrideSystem: false,
+          ignoreInputFields: false, 
+          repeatOnHold: false 
+        }
+      );
+       useKeyboardShortcut(
+        ["J"],
+        shortcutKeys => navigate(`/subgreddit/subrequests${location.search}`),
+        { 
+          overrideSystem: false,
+          ignoreInputFields: false, 
+          repeatOnHold: false 
+        }
+      );
+      useKeyboardShortcut(
+        ["S"],
+        shortcutKeys => navigate(`/subgreddit/stats${location.search}`),
+        { 
+          overrideSystem: false,
+          ignoreInputFields: false, 
+          repeatOnHold: false 
+        }
+      );
+      useKeyboardShortcut(
+        ["R"],
+        shortcutKeys => navigate(`/subgreddit/reports${location.search}`),
+        { 
+          overrideSystem: false,
+          ignoreInputFields: false, 
+          repeatOnHold: false 
+        }
+      );
+
 
     useEffect(() => {
         const fetchdata = async () => {

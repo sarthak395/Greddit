@@ -171,7 +171,7 @@ const Home = () => {
     const result = fuse.search(searched);
 
     settodisplaysubgreddit(result);
-    console.log(todisplaysubgreddit);
+    // console.log(todisplaysubgreddit);
   }
 
   return (
