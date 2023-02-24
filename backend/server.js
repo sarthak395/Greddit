@@ -168,6 +168,12 @@ app.post('/api/signup', async (req, res) => {
         return;
     }
 
+    var emailregex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!req.body.email.match(emailregex)) {
+        res.status(400).json({ error: "Please Enter Valid Email" });
+        return;
+    }
+
     var phoneno = /^[6789]\d{9}$/;
     if (!req.body.contactno.match(phoneno)) {
         res.status(400).json({ error: "Please Enter Valid Phone Number" });

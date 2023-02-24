@@ -24,6 +24,11 @@ const Signup = () => {
       return;
     }
 
+    var emailregex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!formdata.email.match(emailregex)) {  
+      setsubmitdisabled(true)
+      return;
+    }
     var phoneno = /^[6789]\d{9}$/;
     if (!formdata.contactno.match(phoneno)) {
       setsubmitdisabled(true)
@@ -78,6 +83,12 @@ const Signup = () => {
 
       if (firstname === "" || lastname === "" || username === "" || age === "" || contactno === "" || email === "" || password === "" || confirmpassword === "") {
         toast.error("Please fill all the fields")
+        return;
+      }
+
+      var emailregex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+      if (!email.match(emailregex)) {
+        toast.error("Please enter a valid email address");
         return;
       }
 
