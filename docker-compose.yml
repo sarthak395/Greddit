@@ -17,15 +17,15 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000" 
-  # nginx:
-  #       depends_on:
-  #         - backend
-  #         - frontend
-  #       restart: always
-  #       build:
-  #           context: ./nginx
-  #       ports:
-  #           - "8080:8080"
+  nginx:
+        depends_on:
+          - backend
+          - frontend
+        restart: always
+        build:
+            context: ./nginx
+        ports:
+            - "8080:8080"
 volumes: 
   db:
 
